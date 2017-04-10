@@ -1,0 +1,18 @@
+{
+  "name": "mv-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mv.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0",
+    "chai": "^3.5.0",
+    "sinon": "^2.1.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Dien Luong",
+  "license": "ISC"
+}
