@@ -18,7 +18,7 @@ module.exports.create = function create() {
             return parser.parse(args);
         }
         catch(e) {
-            console.log('Error trying to parse arguments: ' + e);
+            console.log('Error parsing arguments: ' + e);
         }
     }
 };
