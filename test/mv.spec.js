@@ -20,7 +20,7 @@ describe('mv', function () {
 
         it('should call parser.parse() with glob patterns from command line', function () {
             this.mv.run();
-            expect(myParser.parse.calledWith(['*.*', '*.jpg'])).to.be.true;
+            expect(myParser.parse.calledWith('*.jpg')).to.be.true;
         });
     });
 });
