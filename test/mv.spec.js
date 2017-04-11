@@ -1,6 +1,6 @@
 var expect  = require('chai').expect;
 var sinon   = require('sinon');
-var Mv      = require('../src/mv');
+var mv      = require('../src/mv');
 var myParser  = require('../src/mv-parser');
 
 describe('mv', function () {
@@ -9,7 +9,7 @@ describe('mv', function () {
             this.argv = process.argv;   // backs up argv
             process.argv = [process.execPath, 'ms.js', '*.*', '*.jpg'];
             sinon.spy(myParser, "parse");
-            this.mv = Mv();
+            this.mv = mv.create();
             this.mv.init(myParser);
         });
 

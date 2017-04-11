@@ -1,4 +1,4 @@
-module.exports = function CreateMv() {
+module.exports.create = function create() {
     var parser = null;
 
     return {
