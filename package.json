@@ -1,7 +1,7 @@
 {
   "name": "mv-js",
   "version": "1.0.0",
-  "description": "",
+  "description": "Shell script for batch renaming of files.",
   "main": "mv.js",
   "dependencies": {
   },
