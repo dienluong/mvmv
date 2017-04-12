@@ -28,13 +28,13 @@ describe('mv-parser', function () {
         });
 
         it('should return [] when none matched', function () {
-            var fileList = this.parser.resolve(path.join('test-data', '*.bob'));
+            this.parser.resolve(path.join('test-data', '*.bob'));
             expect(this.parser.resolve.returned([])).to.be.true;
         });
 
         it('should return array of file names matching glob pattern', function () {
             var fileList = this.parser.resolve(path.join('test', 'test-data', '*.txt'));
-            expect(this.parser.resolve.returned(txtFileNames)).to.be.true;
+            expect(fileList).to.eql(txtFileNames);
         });
     });
 });
