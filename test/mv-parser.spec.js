@@ -1,22 +1,46 @@
+var mockFs  = require('mock-fs');
+var filenameGen = require('natural-filename-generator');
+var globby  = require('globby');
 var path    = require('path');
 var expect  = require('chai').expect;
 var sinon   = require('sinon');
 var myParser  = require('../src/mv-parser');
 
-const txtFileNames = [ 'test/test-data/4911339-know-sudan-2017-04-11-drama.txt',
-    'test/test-data/burundi_such_sm_help.txt',
-    'test/test-data/ethiopia-492795-military-buenos-aires.txt',
-    'test/test-data/faq-pretoria-moreover.txt',
-    'test/test-data/guides_small_guinea_2017-04-11_astana.txt',
-    'test/test-data/italy-jobs-wipe.txt',
-    'test/test-data/marshall-islands_billy-preston_bottom_17.txt',
-    'test/test-data/religion-nigeria.txt',
-    'test/test-data/sports-divine-8499096-putrajaya.txt',
-    'test/test-data/turkey-2784-drama.txt'
-];
-
 describe('mv-parser', function () {
     describe('resolve()', function () {
+        before(function () {
+            var g = new filenameGen();
+
+            // creates mock test folder and files
+            mockFs({
+                'test/test-data': {
+                    [g.generate('txt')] : 'created by mock-fs',
+                    [g.generate('txt')] : 'created by mock-fs',
+                    [g.generate('txt')] : 'created by mock-fs',
+                    [g.generate('TXT')] : 'created by mock-fs',
+                    [g.generate('jpg')] : 'created by mock-fs',
+                    [g.generate('jpg')] : 'created by mock-fs',
+                    [g.generate('JPG')] : 'created by mock-fs',
+                    [g.generate('jpeg')] : 'created by mock-fs',
+                    [g.generate('jpeg')] : 'created by mock-fs',
+                    [g.generate('png')] : 'created by mock-fs',
+                    [g.generate('png')] : 'created by mock-fs',
+                    [g.generate('gif')] : 'created by mock-fs',
+                    [g.generate('gif')] : 'created by mock-fs',
+                    [g.generate('JPEG')] : 'created by mock-fs',
+                    [g.generate('GIF')] : 'created by mock-fs',
+                    [g.generate('')] : 'created by mock-fs'
+                }
+            });
+
+            this.globPattern = path.join('test', 'test-data', '*.txt');
+            this.txtFileNames = globby.sync(this.globPattern);
+        });
+
+        after(function () {
+           mockFs.restore();
+        });
+
         beforeEach(function () {
             this.parser = myParser.create();
             sinon.spy(this.parser, 'resolve');
@@ -33,8 +57,8 @@ describe('mv-parser', function () {
         });
 
         it('should return array of file names matching glob pattern', function () {
-            var fileList = this.parser.resolve(path.join('test', 'test-data', '*.txt'));
-            expect(fileList).to.eql(txtFileNames);
+            var fileList = this.parser.resolve(this.globPattern);
+            expect(fileList).to.eql(this.txtFileNames);
         });
     });
 });
