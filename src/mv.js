@@ -1,5 +1,7 @@
+var DefaultParser = require('../src/mv-parser');
+
 module.exports.create = function create() {
-    var parser = null;
+    var parser = DefaultParser.create();
 
     return {
         run: function () {
@@ -9,7 +11,7 @@ module.exports.create = function create() {
 
         init: function(p) {
             "use strict";
-            parser = p;
+            parser = p || parser;
         }
     };
 
@@ -19,7 +21,7 @@ module.exports.create = function create() {
         }
         catch(e) {
             console.log('Error parsing arguments: ' + e);
+            throw e;
         }
     }
 };
-
