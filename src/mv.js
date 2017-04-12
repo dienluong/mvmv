@@ -4,7 +4,7 @@ module.exports.create = function create() {
     return {
         run: function () {
             "use strict";
-
+            parseArg(process.argv[2]);
         },
 
         init: function(p) {
@@ -13,9 +13,9 @@ module.exports.create = function create() {
         }
     };
 
-    function parseArgs (args) {
+    function parseArg (arg) {
         try {
-            return parser.parse(args);
+            return parser.resolve(arg);
         }
         catch(e) {
             console.log('Error parsing arguments: ' + e);
