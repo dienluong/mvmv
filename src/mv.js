@@ -1,17 +1,25 @@
 var DefaultParser = require('../src/mv-parser');
+var DefaultMover  = require('../src/mv-mover');
 
-module.exports.create = function create() {
+module.exports.create = function createMv() {
     var parser = DefaultParser.create();
+    var mover  = DefaultMover.create();
+    var fileList = [];
+    const srcPattern = process.argv[2];
+    const dstPattern = process.argv[3];
 
     return {
         run: function () {
             "use strict";
-            parseArg(process.argv[2]);
+            fileList = parseArg(srcPattern);
+            moveFile(fileList, dstPattern);
+
         },
 
-        init: function(p) {
+        init: function(p, m) {
             "use strict";
             parser = p || parser;
+            mover = m || mover;
         }
     };
 
@@ -21,6 +29,16 @@ module.exports.create = function create() {
         }
         catch(e) {
             console.log('Error parsing arguments: ' + e);
+            throw e;
+        }
+    }
+
+    function moveFile (list, pattern) {
+        try {
+            mover.move(list, pattern);
+        }
+        catch(e) {
+            console.log('Error moving items: ' + e);
             throw e;
         }
     }
