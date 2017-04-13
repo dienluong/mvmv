@@ -1,5 +1,5 @@
-var fs = require('fs');
-var glob = require('glob'); //http://stackoverflow.com/a/25580289
+//http://stackoverflow.com/a/25580289
+var glob = require('glob');
 
 function createParser () {
     return {
