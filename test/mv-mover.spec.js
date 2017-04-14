@@ -10,7 +10,7 @@ var Mover   = require('../src/mv-mover');
 
 describe('mv-mover', function () {
     describe('move()', function () {
-       it('should rename list of files using specified extension (*.doc)', function () {
+       it('should rename *.txt files to *.doc', function () {
            let srcPattern = path.join('*.txt');
            let dstPattern = path.join('*.doc');
            let filesList = globby.sync(srcPattern);
@@ -31,7 +31,7 @@ describe('mv-mover', function () {
 
        beforeEach(function () {
            var g = new filenameGen();
-           
+
            // creates mock test folder and files
            mockFs({
                    [g.generate('txt')] : 'created by mock-fs',
