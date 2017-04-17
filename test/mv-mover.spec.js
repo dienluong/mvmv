@@ -23,7 +23,7 @@ describe('mv-mover', function () {
 
            console.log(`expectedList: ${expectedList}`);
 
-           this.myMover.move(filesList, dstPattern);
+           this.myMover.move(filesList, srcPattern, dstPattern);
 
            expect(globby.sync(srcPattern)).to.be.empty;
            expect(globby.sync(dstPattern)).to.eql(expectedList);
