@@ -1,10 +1,13 @@
+var globule = require('globule');
+
 function createMover() {
     "use strict";
     return {
-        move: function (items, pattern) {
-
-        }
+        move: moveItems
     };
+
+    function moveItems (items, srcPattern, dstPattern) {
+    }
 }
 
 module.exports.create = createMover;
