@@ -7,24 +7,6 @@ function englobbed(paths, glob) {
     if (!Array.isArray(paths)) {
         throw new TypeError('Expects an array of paths.');
     }
-    // ---------------------------------------------------------------
-    // Extracts literal, i.e. non-wildcard, portions of the glob
-    /*            var literals = glob.match(/[^*?]+/g);
-     var separator = '';
-
-     if (literals) {
-     separator = `(?:${literals[0]}`;
-
-     for (let i = 1; i < literals.length; i++) {
-     separator += `|${literals[i]}`;
-     }
-
-     separator += ')';
-     }
-
-     console.log('Separator: ' + separator);*/
-    // ---------------------------------------------------------------
-
 
     let re = glToRe(glob, {extended: true});
     console.log('Gl-to-Re:    ' + re);
@@ -53,6 +35,23 @@ function englobbed(paths, glob) {
     re = new RegExp(tmpStr);
     console.log('Gl-to-Re Mod: ' + re);
 
+    // Produce an array of all capture groups from the regex
+    let captureGroups = re.source.split(')')
+        .map(function (g) {
+            // remove everything up to, and including, '('
+            let token = g.slice(g.indexOf('(') + 1);
+            if (token === '.') {
+                return '?';
+            }
+            if (token === '.*') {
+                return '*';
+            }
+            return token;
+        });
+        // .filter(function (g) {
+        //     return (g === '?' || g === '*');
+        // });
+
     // let re2 = mm.makeRe(glob);
     // console.log('Micromatch    :' + re2);
     // re2 = new RegExp(re2.source.replace('(?:', '('));
@@ -60,18 +59,35 @@ function englobbed(paths, glob) {
 
     return paths.map(function (p) {
         try {
-            var basename = path.basename(p);
+            let basename = path.basename(p);
 
             console.log("gltoRe:\n");
-            let match = basename.match(re);
-            console.log(match);
+            let matches = basename.match(re);
+            console.log(matches);
+
+            if (matches.length !== captureGroups.length) {
+                throw new Error(`matches.length: ${matches.length}, captureGroups: ${captureGroups.length}`);
+            }
+
+            let results = [];
+
+            captureGroups.forEach(function (g, idx) {
+                // only produce result for capture group for wildcard ? and *
+                // [idx + 1] because whole match is first element of array of matches
+                if (g === '?' || g === '*') {
+                    results.push({
+                        wildcard: g,
+                        match: matches[idx + 1]
+                    });
+                }
+            });
 
             // let match2 = p.match(re2);
             // console.log("Micromatch:\n");
             // console.log(match2);
             // console.log('\n');
 
-            return match;
+            return results;
         }
         catch(e) {
             // console.log(e.message);
