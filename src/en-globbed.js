@@ -9,7 +9,9 @@ function englobbed(paths, glob) {
     }
 
     let re = glToRe(glob, {extended: true});
+/*
     console.log('Gl-to-Re:    ' + re);
+*/
     // Add capture group for regex '.'
     let tmpStr = re.source.replace(/\./g, function (match, offset, source) {
         // if "\.", then it's a literal '.', return
@@ -25,15 +27,23 @@ function englobbed(paths, glob) {
         return (`(${match})`);
     });
 
+/*
     console.log('tmpStr: ' + tmpStr);
+*/
     // Add capture group for regex '.*'
     tmpStr = tmpStr.replace(/\.\*/g, '($&)');
+/*
     console.log('tmpStr: ' + tmpStr);
+*/
     // Add capture group for substrings not already enclosed in capture group...
     tmpStr = tmpStr.replace(/([^\*\(\)\$\^]+(?![\*\)]))/g, '($&)');
+/*
     console.log('tmpStr: ' + tmpStr);
+*/
     re = new RegExp(tmpStr);
+/*
     console.log('Gl-to-Re Mod: ' + re);
+*/
 
     // Produce an array of all capture groups from the regex
     let captureGroups = re.source.split(')')
@@ -48,9 +58,6 @@ function englobbed(paths, glob) {
             }
             return token;
         });
-        // .filter(function (g) {
-        //     return (g === '?' || g === '*');
-        // });
 
     // let re2 = mm.makeRe(glob);
     // console.log('Micromatch    :' + re2);
@@ -61,9 +68,13 @@ function englobbed(paths, glob) {
         try {
             let basename = path.basename(p);
 
+/*
             console.log("gltoRe:\n");
+*/
             let matches = basename.match(re);
+/*
             console.log(matches);
+*/
 
             if (matches.length !== captureGroups.length) {
                 throw new Error(`matches.length: ${matches.length}, captureGroups: ${captureGroups.length}`);
@@ -82,6 +93,7 @@ function englobbed(paths, glob) {
                 }
             });
 
+            console.log(results);
             // let match2 = p.match(re2);
             // console.log("Micromatch:\n");
             // console.log(match2);
