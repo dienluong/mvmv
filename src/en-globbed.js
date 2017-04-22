@@ -33,6 +33,9 @@ function englobbed(paths, glob) {
 /*
             console.log(matches);
 */
+            if (!matches) {
+                return [];
+            }
 
             if (matches.length <= captureGroups.length) {
                 throw new Error(`matches.length: ${matches.length}, captureGroups: ${captureGroups.length}`);
@@ -59,7 +62,7 @@ function englobbed(paths, glob) {
                 }
             });
 
-            console.log(matchPerCG);
+            // console.log(matchPerCG);
             // let match2 = p.match(re2);
             // console.log("Micromatch:\n");
             // console.log(match2);
