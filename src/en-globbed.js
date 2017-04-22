@@ -46,24 +46,16 @@ function englobbed(paths, glob) {
 */
 
     // Produce an array of all capture groups from the regex
-    let captureGroups = re.source.split(')')
-        .map(function (g) {
-            // remove everything up to, and including, '('
-            let token = g.slice(g.indexOf('(') + 1);
-            if (token === '.') {
-                return '?';
-            }
-            if (token === '.*') {
-                return '*';
-            }
-            return token;
-        });
+    let captureGroups = extractCaptureGroups(re);
 
     // let re2 = mm.makeRe(glob);
     // console.log('Micromatch    :' + re2);
     // re2 = new RegExp(re2.source.replace('(?:', '('));
     // console.log('Micromatch mod:' + re2);
 
+
+    // For each paths received, return an array of capture groups with their match,
+    // i.e. returns an array of array of match per capture groups
     return paths.map(function (p) {
         try {
             let basename = path.basename(p);
@@ -76,7 +68,7 @@ function englobbed(paths, glob) {
             console.log(matches);
 */
 
-            if (matches.length !== captureGroups.length) {
+            if (matches.length <= captureGroups.length) {
                 throw new Error(`matches.length: ${matches.length}, captureGroups: ${captureGroups.length}`);
             }
 
@@ -87,7 +79,15 @@ function englobbed(paths, glob) {
                 // [idx + 1] because whole match is first element of array of matches
                 if (g === '?' || g === '*') {
                     results.push({
-                        wildcard: g,
+                        type: "wildcard",
+                        pattern: g,
+                        match: matches[idx + 1]
+                    });
+                }
+                else {
+                    results.push({
+                        type: "literal",
+                        pattern: g,
                         match: matches[idx + 1]
                     });
                 }
@@ -108,4 +108,29 @@ function englobbed(paths, glob) {
     })
 }
 
-module.exports =  exports = englobbed;
+function extractCaptureGroups(re) {
+    "use strict";
+    let captureGroups = [];
+    let source = re.source;
+    let start = source.indexOf('(', 0);
+
+    while (start !== -1) {
+        let end = source.indexOf(')', start);
+        if (end !== -1) {
+            // do not include the parens
+            let token = source.slice(start + 1, end);
+            if (token === '.') {
+                token = '?';
+            }
+            if (token === '.*') {
+                token = '*';
+            }
+            captureGroups.push(token);
+        }
+        start = source.indexOf('(', end + 1);
+    }
+
+    return captureGroups;
+}
+
+module.exports = exports = englobbed;
