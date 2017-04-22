@@ -3,60 +3,97 @@ var sinon   = require('sinon');
 
 var englobbed   = require('../src/en-globbed');
 
-describe('When * wildcard matches multiple characters,', function () {
+describe('When * wildcard matches multiple characters', function () {
     describe('englobbed', function () {
-        it('should return {type: "wildcard", pattern: *, match: "homer"}, when called w/ (path=["homer.js"], glob="*.js")', function () {
+        it('should return {type: "wildcard", pattern: "*", match: <match>}', function () {
             let result = englobbed(['homer.js'], '*.js');
             expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: 'homer'});
-        });
 
-        it('should return {type: "wildcard", pattern: *, match: ".js"}, when called w/ (path=["homer.js"], glob="homer*")', function () {
-            let result = englobbed(['homer.js'], 'homer*');
+            result = englobbed(['homer.js'], 'homer*');
             expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: '.js'});
-        });
 
-        it('should return {type: "wildcard", pattern: *, match: "."}, when called w/ (path=["homer.js"], glob="homer*js")', function () {
-            let result = englobbed(['homer.js'], 'homer*js');
-            expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: '.'});
+            result = englobbed(['homer.js'], 'h*s');
+            expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: 'omer.j'});
         });
     });
 });
 
-describe('When ** wildcard matches a single character,', function () {
+describe('When ** wildcard matches a single character', function () {
    describe('englobbed', function () {
-    it('should return {type: "wildcard", pattern: *, match: "h"}, when called w/ (path=["homer.js"], glob="**omer.js")', function () {
-        let result = englobbed(['homer.js'], '**omer.js');
-        expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: 'h'});
-    });
+       it('should return {type: "wildcard", pattern: "*", match: <matched_char>}', function () {
+           let result = englobbed(['homer.js'], '**omer.js');
+           expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: 'h'});
 
-    it('should return {type: "wildcard", pattern: *, match: "."}, when called w/ (path=["homer.js"], glob="homer**js")', function () {
-        let result = englobbed(['homer.js'], 'homer**js');
-        expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: '.'});
-    });
+           result = englobbed(['homer.js'], 'homer**js');
+           expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: '.'});
 
-    it('should return {type: "wildcard", pattern: *, match: "s"}, when called w/ (path=["homer.js"], glob="homer.j**")', function () {
-        let result = englobbed(['homer.js'], 'homer.j**');
-        expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: 's'});
-    });
-
+           result = englobbed(['homer.js'], 'homer.j**');
+           expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: 's'});
+       });
    });
 });
 
-describe('When ** wildcard matches no character,', function () {
+describe('When ** wildcard matches no character', function () {
     describe('englobbed', function () {
-        it('should return {type: "wildcard", pattern: *, match: ""}, when called w/ (path=["homer.js"], glob="**homer.js")', function () {
+        it('should return {type: "wildcard", pattern: "*", match: ""}', function () {
             let result = englobbed(['homer.js'], '**homer.js');
             expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: ''});
-        });
 
-        it('should return {type: "wildcard", pattern: *, match: ""}, when called w/ (path=["homer.js"], glob="homer**.js")', function () {
-            let result = englobbed(['homer.js'], 'homer**.js');
+            result = englobbed(['homer.js'], 'homer**.js');
             expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: ''});
-        });
 
-        it('should return {type: "wildcard", pattern: *, match: ""}, when called w/ (path=["homer.js"], glob="homer.js**")', function () {
-            let result = englobbed(['homer.js'], 'homer.js**');
+            result = englobbed(['homer.js'], 'homer.js**');
             expect(result[0][1]).to.eql({type: 'wildcard', pattern: '*', match: ''});
         });
     });
 });
+
+describe('When ? wildcard matches a character', function () {
+    describe('englobbed', function () {
+        it('should return {type: "wildcard", pattern: "?", match: <matched_char>}', function () {
+            let result = englobbed(['homer.js'], '?omer.js');
+            expect(result[0][0]).to.eql({type: 'wildcard', pattern: '?', match: 'h'});
+
+            result = englobbed(['homer.js'], 'homer?js');
+            expect(result[0][1]).to.eql({type: 'wildcard', pattern: '?', match: '.'});
+
+            result = englobbed(['homer.js'], 'homer.j?');
+            expect(result[0][1]).to.eql({type: 'wildcard', pattern: '?', match: 's'});
+        });
+    });
+});
+
+describe('When ? wildcard matches no character', function () {
+    describe('englobbed', function () {
+        it('should return empty array (i.e. no match)', function () {
+            let result = englobbed(['homer.js'], '?homer.js');
+            console.log(result);
+            expect(result[0]).to.eql([]);
+            result = englobbed(['homer.js'], 'homer.js?');
+            expect(result[0]).to.eql([]);
+            result = englobbed(['homer.js'], 'homer?.js');
+            expect(result[0]).to.eql([]);
+        });
+    });
+});
+
+
+describe('When receiving multiple paths', function () {
+    describe('englobbed', function () {
+        it('should return a number of results matching number of paths received', function () {
+            let result = englobbed(['marge.json', 'barney.txt'], '*.t?t');
+            expect(result.length).to.equal(2);
+        })
+    });
+});
+
+describe('When receiving zero path', function () {
+    describe('englobbed', function () {
+        it('should return empty array', function () {
+            let result = englobbed([], '*.ex?');
+            expect(result.length).to.equal(0);
+        })
+    });
+});
+
+
