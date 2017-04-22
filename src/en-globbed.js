@@ -12,38 +12,7 @@ function englobbed(paths, glob) {
 /*
     console.log('Gl-to-Re:    ' + re);
 */
-    // Add capture group for regex '.'
-    let tmpStr = re.source.replace(/\./g, function (match, offset, source) {
-        // if "\.", then it's a literal '.', return
-        if (offset && (source[offset - 1] === '\\')) {
-            return match;
-        }
-        // if ".*", then return
-        if (source[offset + 1] === '*') {
-            return match;
-        }
-
-        // Only enclose in capture group '.' that is not part of "\." or ".*"
-        return (`(${match})`);
-    });
-
-/*
-    console.log('tmpStr: ' + tmpStr);
-*/
-    // Add capture group for regex '.*'
-    tmpStr = tmpStr.replace(/\.\*/g, '($&)');
-/*
-    console.log('tmpStr: ' + tmpStr);
-*/
-    // Add capture group for substrings not already enclosed in capture group...
-    tmpStr = tmpStr.replace(/([^\*\(\)\$\^]+(?![\*\)]))/g, '($&)');
-/*
-    console.log('tmpStr: ' + tmpStr);
-*/
-    re = new RegExp(tmpStr);
-/*
-    console.log('Gl-to-Re Mod: ' + re);
-*/
+    re = addCaptureGroups(re);
 
     // Produce an array of all capture groups from the regex
     let captureGroups = extractCaptureGroups(re);
@@ -106,6 +75,45 @@ function englobbed(paths, glob) {
             return { error: e.message };
         }
     })
+}
+
+function addCaptureGroups(re) {
+    "use strict";
+    // Enclose in capture group the regex '.'
+    let tmpStr = re.source.replace(/\./g, function (match, offset, source) {
+        // if "\.", then it's a literal '.', return
+        if (offset && (source[offset - 1] === '\\')) {
+            return match;
+        }
+        // if ".*", then return
+        if (source[offset + 1] === '*') {
+            return match;
+        }
+
+        // Only enclose in capture group '.' that is not part of "\." or ".*"
+        return (`(${match})`);
+    });
+    /*
+     console.log('tmpStr: ' + tmpStr);
+     */
+
+    // Enclose in capture group the regex '.*'
+    tmpStr = tmpStr.replace(/\.\*/g, '($&)');
+    /*
+     console.log('tmpStr: ' + tmpStr);
+     */
+
+    // Enclose in capture group remaining substrings...
+    tmpStr = tmpStr.replace(/([^\*\(\)\$\^]+(?![\*\)]))/g, '($&)');
+    /*
+     console.log('tmpStr: ' + tmpStr);
+     */
+
+    /*
+     console.log('Gl-to-Re Mod: ' + re);
+     */
+
+    return new RegExp(tmpStr);
 }
 
 function extractCaptureGroups(re) {
