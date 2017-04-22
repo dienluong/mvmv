@@ -22,17 +22,14 @@ function englobbed(paths, glob) {
     // re2 = new RegExp(re2.source.replace('(?:', '('));
     // console.log('Micromatch mod:' + re2);
 
-
-    // For each paths received, return an array of capture groups with their match,
-    // i.e. returns an array of array of match per capture groups
-    return paths.map(function (p) {
+    // For each paths received, return an array containing the match for each capture group,
+    // i.e. returns an array of array of match per capture group.
+    return paths.map(function buildMatchPerCGArray(p) {
         try {
-            let basename = path.basename(p);
-
 /*
             console.log("gltoRe:\n");
 */
-            let matches = basename.match(re);
+            let matches = path.basename(p).match(re);
 /*
             console.log(matches);
 */
@@ -41,20 +38,20 @@ function englobbed(paths, glob) {
                 throw new Error(`matches.length: ${matches.length}, captureGroups: ${captureGroups.length}`);
             }
 
-            let results = [];
+            let matchPerCG = [];
 
             captureGroups.forEach(function (g, idx) {
                 // only produce result for capture group for wildcard ? and *
                 // [idx + 1] because whole match is first element of array of matches
                 if (g === '?' || g === '*') {
-                    results.push({
+                    matchPerCG.push({
                         type: "wildcard",
                         pattern: g,
                         match: matches[idx + 1]
                     });
                 }
                 else {
-                    results.push({
+                    matchPerCG.push({
                         type: "literal",
                         pattern: g,
                         match: matches[idx + 1]
@@ -62,25 +59,25 @@ function englobbed(paths, glob) {
                 }
             });
 
-            console.log(results);
+            console.log(matchPerCG);
             // let match2 = p.match(re2);
             // console.log("Micromatch:\n");
             // console.log(match2);
             // console.log('\n');
 
-            return results;
+            return matchPerCG;
         }
         catch(e) {
             // console.log(e.message);
             return { error: e.message };
         }
-    })
+    });
 }
 
 function addCaptureGroups(re) {
     "use strict";
     // Enclose in capture group the regex '.'
-    let tmpStr = re.source.replace(/\./g, function (match, offset, source) {
+    let tmpStr = re.source.replace(/\./g, function encloseRegexDot(match, offset, source) {
         // if "\.", then it's a literal '.', return
         if (offset && (source[offset - 1] === '\\')) {
             return match;
