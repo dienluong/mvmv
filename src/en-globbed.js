@@ -54,6 +54,8 @@ function englobbed(paths, glob) {
                     });
                 }
                 else {
+                    // Remove escape character \ from the regex pattern.
+                    g = g.replace(/\\/, '');
                     matchPerCG.push({
                         type: "literal",
                         pattern: g,
