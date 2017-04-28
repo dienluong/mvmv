@@ -28,6 +28,20 @@ describe('When array of paths is empty', function () {
     });
 });
 
+describe('When element in array of paths is not a string', function () {
+    describe('englobbed', function () {
+        it('should return empty array as result for that element', function () {
+            let result = englobbed([12], '*.txt');
+            expect(result[0]).to.be.an('object')
+                .to.have.property('error');
+
+            result = englobbed(['homer', {}], '?');
+            expect(result[1]).to.be.an('object')
+                .to.have.property('error');
+        });
+    });
+});
+
 describe('When first argument is not an array', function () {
     describe('englobbed', function () {
         beforeEach(function () {
@@ -355,15 +369,42 @@ describe('When a mix of wildcards and literal parts are used in glob pattern', f
             expect(result[0][5]).to.eql({type: 'wildcard', pattern: '*', match: ''});
             expect(result[0][6]).to.eql({type: 'literal', pattern: '.', match: '.'});
             expect(result[0][7]).to.eql({type: 'wildcard', pattern: '*', match: 'js'});
+
+            // * is greedy
+            result = englobbed(['homer.js'], '*??*');
+            expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: 'homer.'});
+            expect(result[0][1]).to.eql({type: 'wildcard', pattern: '?', match: 'j'});
+            expect(result[0][2]).to.eql({type: 'wildcard', pattern: '?', match: 's'});
+            expect(result[0][3]).to.eql({type: 'wildcard', pattern: '*', match: ''});
         });
 
         it('should return an empty array if any part, except for wildcard *, of the glob does not match', function () {
             let result = englobbed(['homer.js'], '*.js?');
             expect(result[0]).to.be.empty;
 
-            result = englobbed(['homer.js'], '*.?');
+            result = englobbed(['homer.js'], '*.???');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], '*..??');
             expect(result[0]).to.be.empty;
         });
+
+        it('should return an empty array if glob does not completely match the path', function () {
+            let result = englobbed(['homer.js'], '?js');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], '?');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], '*.?');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], 'ho*?j');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], 'homer');
+            expect(result[0]).to.be.empty;
+        })
     });
 });
 
