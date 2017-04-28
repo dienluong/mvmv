@@ -8,6 +8,10 @@ function englobbed(paths, glob) {
         throw new TypeError('Expects an array of paths.');
     }
 
+    if ((typeof glob !== 'string') || !glob.length) {
+        throw new TypeError('Expects non-empty string.');
+    }
+
     let re = glToRe(glob, {extended: true});
 /*
     console.log('Gl-to-Re:    ' + re);
