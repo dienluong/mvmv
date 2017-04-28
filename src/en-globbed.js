@@ -2,6 +2,9 @@ var path    = require('path');
 var glToRe  = require('glob-to-regexp');
 // var mm      = require('micromatch');
 
+// For each path received in the array (1st argument), returns an array containing the match of each parts of the glob
+// If there is no match for the path, return an empty array.
+// If the 'path' is not a string, return an obj with an error property.
 function englobbed(paths, glob) {
     "use strict";
     if (!Array.isArray(paths)) {
