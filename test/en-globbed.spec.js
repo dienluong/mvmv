@@ -11,18 +11,102 @@ describe('When receiving multiple paths', function () {
         it('should return a number of results matching number of paths received', function () {
             let result = englobbed(['marge.json', 'barney.txt'], '*.t?t');
             expect(result.length).to.equal(2);
-        })
+
+            result = englobbed(['marge.json', 'barney.txt', 'maggie.doc'], '?.js');
+            expect(result.length).to.equal(3);
+
+        });
     });
 });
 
-describe('When receiving zero path', function () {
+describe('When array of paths is empty', function () {
     describe('englobbed', function () {
         it('should return empty array', function () {
             let result = englobbed([], '*.ex?');
             expect(result).to.be.empty;
-        })
+        });
     });
 });
+
+describe('When first argument is not an array', function () {
+    describe('englobbed', function () {
+        beforeEach(function () {
+            this.englobbed = englobbed;
+            sinon.spy(this, 'englobbed');
+        });
+
+        afterEach(function () {
+            this.englobbed.restore();
+        });
+
+        it('should throw a TypeError', function () {
+            try {
+                this.englobbed('bob', '*.js');
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed(10, '*.txt');
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed({}, '*.js');
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed();
+            }
+            catch(e) {}
+
+            expect(this.englobbed.alwaysThrew('TypeError')).to.be.true;
+        });
+    });
+});
+
+describe('When receiving other than a non-empty string as 2nd argument', function () {
+    describe('englobbed', function () {
+        beforeEach(function () {
+            this.englobbed = englobbed;
+            sinon.spy(this, 'englobbed');
+        });
+
+        afterEach(function () {
+            this.englobbed.restore();
+        });
+
+        it('should throw a TypeError', function () {
+            try {
+                this.englobbed([], 2);
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed([], '');
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed([], []);
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed([], {})
+            }
+            catch(e) {}
+
+            try {
+                this.englobbed([]);
+            }
+            catch(e) {}
+
+            expect(this.englobbed.alwaysThrew('TypeError')).to.be.true;
+        });
+    });
+});
+
 // ------------------------- Test cases for * wildcard ------------------------------
 describe('When * wildcard matches multiple characters', function () {
     describe('englobbed', function () {
@@ -191,6 +275,9 @@ describe('When the literal part has no match', function () {
             result = englobbed(['homer.js'], '*a*');
             expect(result[0]).to.be.empty;
 
+            result = englobbed(['homer.js'], '*.');
+            expect(result[0]).to.be.empty;
+
             result = englobbed(['homer.js'], '?omar.??');
             expect(result[0]).to.be.empty;
 
@@ -231,7 +318,7 @@ describe('When multiple literal parts matched', function () {
 // ------------------------ Tests mixed wildcards and literals -------------------------------
 describe('When a mix of wildcards and literal parts are used in glob pattern', function () {
     describe('englobbed', function () {
-        it('should return an array of objects {type, pattern, match} for each parts of the pattern, if all parts match', function () {
+        it('should return an array of {type, pattern, match} for each part of the pattern, if all parts match', function () {
             let result = englobbed(['homer.js'], '*.?s');
             expect(result[0][0]).to.eql({type: 'wildcard', pattern: '*', match: 'homer'});
             expect(result[0][1]).to.eql({type: 'literal', pattern: '.', match: '.'});
@@ -270,8 +357,11 @@ describe('When a mix of wildcards and literal parts are used in glob pattern', f
             expect(result[0][7]).to.eql({type: 'wildcard', pattern: '*', match: 'js'});
         });
 
-        it('should return an empty array if any part, except for wildcard *, of the glob has no match', function () {
+        it('should return an empty array if any part, except for wildcard *, of the glob does not match', function () {
             let result = englobbed(['homer.js'], '*.js?');
+            expect(result[0]).to.be.empty;
+
+            result = englobbed(['homer.js'], '*.?');
             expect(result[0]).to.be.empty;
         });
     });
