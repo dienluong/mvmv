@@ -18,3 +18,9 @@
 ## Literal Matches
 1. Works even if * matches zero character
 2. Works even when there are multiple literals in the glob pattern
+
+
+# Notes
+
+## File Systems Guide
+https://nodejs.org/en/docs/guides/working-with-different-filesystems/
