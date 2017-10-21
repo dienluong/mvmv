@@ -1,18 +1,24 @@
 'use strict';
 
-var expect    = require('chai').expect;
-var sinon   = require('sinon');
+const expect    = require('chai').expect;
+const sinon   = require('sinon');
 
-var englobbed   = require('../src/en-globbed');
+const englobbed   = require('../src/en-globbed');
 
-// ------------------------------- Misc Test Cases ---------------------------------------
+/*
+ * ----------------------------------------------------------------------------------------------------
+ * ------------------------------- Argument Handling Test Cases ---------------------------------------
+ * ----------------------------------------------------------------------------------------------------
+ */
 describe('When receiving multiple paths', function () {
     describe('englobbed', function () {
         it('should return a number of results matching number of paths received', function () {
             let result = englobbed(['marge.json', 'barney.txt'], '*.t?t');
+            // noinspection JSUnresolvedVariable
             expect(result.length).to.equal(2);
 
             result = englobbed(['marge.json', 'barney.txt', 'maggie.doc'], '?.js');
+            // noinspection JSUnresolvedVariable
             expect(result.length).to.equal(3);
 
         });
@@ -120,8 +126,11 @@ describe('When receiving other than a non-empty string as 2nd argument', functio
         });
     });
 });
-
-// ------------------------- Test cases for * wildcard ------------------------------
+/*
+ * ----------------------------------------------------------------------------------
+ * ------------------------- Test cases for * wildcard ------------------------------
+ * ----------------------------------------------------------------------------------
+ */
 describe('When * wildcard matches multiple characters', function () {
     describe('englobbed', function () {
         it('should return in an array {type: "wildcard", pattern: "*", match: <matched_str>}', function () {
@@ -182,7 +191,11 @@ describe('When ** is specified', function () {
     })
 });
 
-// ------------------- Tests cases for ? wildcard -------------------------------
+/*
+ * ------------------------------------------------------------------------------
+ * ------------------- Tests cases for ? wildcard -------------------------------
+ * ------------------------------------------------------------------------------
+ */
 describe('When ? wildcard matches one character', function () {
     describe('englobbed', function () {
         it('should return in an array {type: "wildcard", pattern: "?", match: <matched_char>}', function () {
@@ -252,12 +265,20 @@ describe('When multiple ? wildcards are used', function () {
         })
     });
 });
-// ------------------------------- Test cases for literals ------------------------------
+
+/*
+ * --------------------------------------------------------------------------------------
+ * ------------------------------- Test cases for literals ------------------------------
+ * --------------------------------------------------------------------------------------
+ */
 describe('When the literal part is matched', function () {
     describe('englobbed', function () {
         it('should return in an array {type: "literal", pattern: <literal_str>, match: <matched_str>}', function () {
             let result = englobbed(['homer.js'], 'homer.js');
             expect(result[0][0]).to.eql({type: 'literal', pattern: 'homer.js', match: 'homer.js'});
+
+            result = englobbed(['homer..js'], 'homer..js');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: 'homer..js', match: 'homer..js'});
 
             result = englobbed(['homer.js'], '*.js');
             expect(result[0][1]).to.eql({type: 'literal', pattern: '.js', match: '.js'});
@@ -329,7 +350,41 @@ describe('When multiple literal parts matched', function () {
     });
 });
 
-// ------------------------ Tests mixed wildcards and literals -------------------------------
+describe('When literal parts contain "^" and "$" characters', function () {
+    describe('englobbed', function () {
+        it('should return in an array {type: "literal", pattern: <literal_str>, match: <matched_str>} for each literal match)', function () {
+            let result = englobbed(['homer^.js'], 'homer^.js');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: 'homer^.js', match: 'homer^.js'});
+            result = englobbed(['homer.$js'], 'homer.$js');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: 'homer.$js', match: 'homer.$js'});
+            result = englobbed(['^homer.js'], '^homer.js');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: '^homer.js', match: '^homer.js'});
+            result = englobbed(['homer.as$'], 'homer.as$');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: 'homer.as$', match: 'homer.as$'});
+            result = englobbed(['^homer.as$'], '^homer.as$');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: '^homer.as$', match: '^homer.as$'});
+            result = englobbed(['$homer.as^'], '$homer.as^');
+            expect(result[0][0]).to.eql({type: 'literal', pattern: '$homer.as^', match: '$homer.as^'});
+        });
+    });
+
+    describe('englobbed', function () {
+        it('should return an empty array if not matching', function () {
+            let result = englobbed(['homer.txt'], '^homer.txt$');
+            expect(result[0]).to.be.empty;
+            result = englobbed(['homer.txt'], '$homer.txt^');
+            expect(result[0]).to.be.empty;
+            result = englobbed(['^^homer.txt$$'], '^homer.txt$');
+            expect(result[0]).to.be.empty;
+        });
+    });
+});
+
+/*
+ * -------------------------------------------------------------------------------------------
+ * ------------------------ Tests mixed wildcards and literals -------------------------------
+ * -------------------------------------------------------------------------------------------
+ */
 describe('When a mix of wildcards and literal parts are used in glob pattern', function () {
     describe('englobbed', function () {
         it('should return an array of {type, pattern, match} for each part of the pattern, if all parts match', function () {
