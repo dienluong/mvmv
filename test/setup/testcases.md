@@ -18,6 +18,7 @@
 ## Literal Matches
 1. Works even if * matches zero character
 2. Works even when there are multiple literals in the glob pattern
+3. Works even with glob patterns containing literal ^ and $
 
 
 # Notes
