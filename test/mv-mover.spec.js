@@ -1,12 +1,14 @@
-var mockFs  = require('mock-fs');
-var filenameGen = require('natural-filename-generator');
-var path    = require('path');
-var globby  = require('globby');
+'use strict';
 
-var expect    = require('chai').expect;
-var sinon   = require('sinon');
+const mockFs  = require('mock-fs');
+const filenameGen = require('natural-filename-generator');
+const path    = require('path');
+const globby  = require('globby');
 
-var Mover   = require('../src/mv-mover');
+const expect    = require('chai').expect;
+const sinon   = require('sinon');
+
+const Mover   = require('../src/mv-mover');
 
 describe('mv-mover', function () {
     describe('move()', function () {
