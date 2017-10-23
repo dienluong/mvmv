@@ -1,3 +1,5 @@
+'use strict';
+
 const MockFs    = require('mock-fs');
 const Globby    = require('globby');
 const fs        = require('fs');

@@ -1,3 +1,5 @@
+'use strict';
+
 // Mock fs core module
 var mockFs = require('mock-fs');
 
