@@ -1,4 +1,6 @@
-var globule = require('globule');
+'use strict';
+// const globule = require('globule');
+const rename    = require('../src/mv-renamer').rename;
 
 function createMover() {
     "use strict";
@@ -6,7 +8,8 @@ function createMover() {
         move: moveItems
     };
 
-    function moveItems (items, srcPattern, dstPattern) {
+    function moveItems() {
+
     }
 }
 

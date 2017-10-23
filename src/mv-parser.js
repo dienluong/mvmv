@@ -1,3 +1,5 @@
+'use strict';
+
 //http://stackoverflow.com/a/25580289
 const glob = require('glob');
 

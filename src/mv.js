@@ -1,3 +1,5 @@
+'use strict';
+
 var DefaultParser = require('../src/mv-parser');
 var DefaultMover  = require('../src/mv-mover');
 
