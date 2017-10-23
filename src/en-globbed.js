@@ -1,3 +1,5 @@
+'use strict';
+
 const glToRe  = require('glob-to-regexp');
 // var path    = require('path');
 // var mm      = require('micromatch');
@@ -8,24 +10,72 @@ const glToRe  = require('glob-to-regexp');
  */
 
 /**
- * For each path received in the array (1st argument), returns an array containing the match of each parts of the glob pattern (2nd argument).
- * @method englobbed
- * @param paths {Array} List of paths
- * @param glob {String} The glob pattern
- * @return {Array} An array of arrays. First sub-array is tied to first path.
- *                 - If the glob matches the given path, then each element of sub-array is an object for the match of each group of the glob pattern;
+ * Returns the different parts (literals, wildcards) of a glob pattern.
+ * @param glob {String} Glob to extract the parts from
+ * @return {Array} The parts of the glob; empty array if glob is invalid (e.g. empty string)
+ *                  Example: For glob 'abc*def' -> [ 'abc', '*', 'def' ]
+ * TODO: Write test cases!
+ */
+function deconstruct(glob) {
+    "use strict";
+    let groups = [];
+    let marker;
+    let subGlob;
+    // if not a string or empty string, return empty array
+    if (typeof glob !== 'string' || !glob) {
+        return [];
+    }
+    // Any multiple consecutive * is equivalent to a single *
+    subGlob = glob.replace(/\*{2,}/,'*');
+
+    marker = subGlob.search(/[*|?]/g);
+    while (marker !== -1) {
+        // If marker is not at first spot, everything before it is a group
+        // Example: abc*def -> groups [abc][*][def]
+        if (marker !== 0) {
+            groups.push(subGlob.slice(0, marker));
+        }
+        // character at marker is itself a group of its own
+        groups.push(subGlob.charAt(marker));
+        // Truncate the portion already processed and continue with the remainder
+        subGlob = subGlob.substr(marker+1);
+        marker = subGlob.search(/[*|?]/g);
+    }
+
+    if (subGlob) {
+        groups.push(subGlob);
+    }
+
+    return groups;
+}
+
+/**
+ * For each name received in the array (1st argument), returns an array containing the match of each parts of the glob pattern (2nd argument).
+ * @method capture
+ * @param names {Array} List of names
+ * @param glob {String} The glob pattern to be applied to names
+ * @return {Array} An array of arrays. First sub-array is tied to first name.
+ *                  - If the glob matches the given name, then each element of sub-array is an object
+ *                    for each group of the glob pattern; Examples:
+ *                              {type: 'literal', pattern: 'h', match: 'h'}
+ *                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
  *                 - If there is no match, then the sub-array is empty;
- *                 - If there's an error, it's an object with an 'error' property, instead of an sub-array.
+ *                 - If there's an error, sub-array contains an Error object.
+ *                 - Returns empty array if list of names received is empty
  * @throws {TypeError} Arguments of incorrect type.
  */
-function englobbed(paths, glob) {
+function capture(names, glob) {
     "use strict";
-    if (!Array.isArray(paths)) {
-        throw new TypeError('Expects an array of paths.');
+    if (!Array.isArray(names)) {
+        throw new TypeError('Expects an array of strings.');
     }
 
     if ((typeof glob !== 'string') || !glob.length) {
-        throw new TypeError('Expects non-empty string.');
+        throw new TypeError('Expects non-empty string for glob pattern.');
+    }
+
+    if (!names.length) {
+        return [];
     }
 
     // Transform glob pattern to equivalent regex
@@ -48,66 +98,57 @@ function englobbed(paths, glob) {
     // re2 = new RegExp(re2.source.replace('(?:', '('));
     // console.log('Micromatch mod:' + re2);
 
-    // For each paths received, return an array containing the match for each capture group,
+    // For each names received, return an array containing the match for each capture group,
     // i.e. returns an array of array of match per capture group.
-    return paths.map(function buildMatchPerCGArray(p) {
-        try {
-/*
-            console.log("gltoRe:\n");
-*/
-            if (typeof p !== 'string') {
-                return { error: 'Invalid type' };
-            }
-
-            // let matches = path.basename(p).match(re);
-            let matches = p.match(re);
-            if (!matches) {
-                return [];
-            }
-            // console.log(matches);
-            // console.log(captureGroups);
-
-            // String.match() returns the entire match *and* the capture group matches;
-            // so its array length must be > then the length of the capture groups array
-            if (matches.length <= captureGroups.length) {
-                return { error: `Error! matches.length: ${matches.length}, captureGroups: ${captureGroups.length}` };
-            }
-
-            let matchPerCG = [];
-
-            captureGroups.forEach(function (g, idx) {
-                // only produce result for capture group for wildcard ? and *
-                // [idx + 1] because whole match is first element of array of matches
-                if (g === '?' || g === '*') {
-                    matchPerCG.push({
-                        type: "wildcard",
-                        pattern: g,
-                        match: matches[idx + 1]
-                    });
-                }
-                else {
-                    // Remove escape character \ from the regex pattern.
-                    g = g.replace(/\\/g, '');
-                    matchPerCG.push({
-                        type: "literal",
-                        pattern: g,
-                        match: matches[idx + 1]
-                    });
-                }
-            });
-
-            // console.log(matchPerCG);
-            // let match2 = p.match(re2);
-            // console.log("Micromatch:\n");
-            // console.log(match2);
-            // console.log('\n');
-
-            return matchPerCG;
+    return names.map(function buildMatchPerCGArray(p) {
+        if (typeof p !== 'string') {
+            return [ new TypeError('Invalid type') ];
         }
-        catch(e) {
-            // console.log(e.message);
-            return { error: e.message };
+
+        // let matches = path.basename(p).match(re);
+        let matches = p.match(re);
+        if (!matches) {
+            return [];
         }
+        // console.log(matches);
+        // console.log(captureGroups);
+
+        // String.match() returns the entire match *and* the capture group matches;
+        // so its array length must be > then the length of the capture groups array
+        if (matches.length <= captureGroups.length) {
+            return [ new Error(`Error: length mismatch! matches: ${matches.length}, groups: ${captureGroups.length}`) ];
+        }
+
+        let matchPerCG = [];
+
+        captureGroups.forEach(function (g, idx) {
+            // only produce result for capture group for wildcard ? and *
+            // [idx + 1] because whole match is first element of array of matches
+            if (g === '?' || g === '*') {
+                matchPerCG.push({
+                    type: "wildcard",
+                    pattern: g,
+                    match: matches[idx + 1]
+                });
+            }
+            else {
+                // Remove escape character \ from the regex pattern.
+                g = g.replace(/\\/g, '');
+                matchPerCG.push({
+                    type: "literal",
+                    pattern: g,
+                    match: matches[idx + 1]
+                });
+            }
+        });
+
+        // console.log(matchPerCG);
+        // let match2 = p.match(re2);
+        // console.log("Micromatch:\n");
+        // console.log(match2);
+        // console.log('\n');
+
+        return matchPerCG;
     });
 }
 
@@ -211,34 +252,5 @@ function extractCaptureGroups(re) {
     return captureGroups;
 }
 
-function extractGroups(glob) {
-    "use strict";
-    let groups = [];
-    let end;
-    let subGlob;
-    // if not a string or empty string, return empty array
-    if (typeof glob !== 'string' || !glob) {
-        return groups;
-    }
-    // Any multiple consecutive * is equivalent to a single *
-    subGlob = glob.replace(/\*{2,}/,'*');
-
-    end = subGlob.search(/[*|?]/g);
-    while (end !== -1) {
-        // Example: abc*def -> groups [abc][*][def]
-        if (end !== 0) {
-            groups.push(subGlob.slice(0, end));
-        }
-        groups.push(subGlob.charAt(end));
-        subGlob = subGlob.substr(end+1);
-        end = subGlob.search(/[*|?]/g);
-    }
-
-    if (subGlob) {
-        groups.push(subGlob);
-    }
-
-    return groups;
-}
-
-module.exports = exports = englobbed;
+module.exports.capture = capture;
+module.exports.deconstruct = deconstruct;
