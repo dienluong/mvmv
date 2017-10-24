@@ -55,7 +55,7 @@ function deconstruct(glob) {
  * @method capture
  * @param names {Array} List of names
  * @param glob {String} The glob pattern to be applied to names
- * @return {Array} An array of captureGroupsCollection objects. First captureGroupsCollection is for the first name.
+ * @return {Array} An array of captureGroups objects. First captureGroups is for the first name.
  * @throws {TypeError} Arguments of incorrect type.
  */
 function capture(names, glob) {
