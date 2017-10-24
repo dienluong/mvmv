@@ -13,8 +13,12 @@ function rename(names, srcGlob, dstGlob) {
     let captureGroupsList = englobbed.capture(names, srcGlob);
     // Deconstruct the glob into literal and wildcar parts
     let dstGlobParts = englobbed.deconstruct(dstGlob);
-    let newNames = captureGroupsList.forEach(function constructName(groups) {
+    let rank = 0;
+    let newNames = dstGlobParts.forEach(function constructName(part, idx, arr) {
         //TODO: to be continued...
+        if (part === '*') {
+            rank += 1;
+        }
     });
     return newNames;
 }
