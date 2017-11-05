@@ -1,6 +1,8 @@
 'use strict';
 
 const glToRe  = require('glob-to-regexp');
+const groupsCollectionInterface = require('../src/captureGroupsCollectionInterface');
+
 // var path    = require('path');
 // var mm      = require('micromatch');
 
@@ -51,21 +53,21 @@ function deconstruct(glob) {
 }
 
 /**
- * For each name received in the array (1st argument), returns an array containing the match of each parts of the glob pattern (2nd argument).
+ * For each element in names array (1st argument), return a captureGroupCollection containing the match of each parts of the glob pattern (2nd argument).
+ * Example: ?omer.* => Parts: 1) '?', 2) 'omer.', 3) '*'
  * @method capture
  * @param names {Array} List of names
  * @param glob {String} The glob pattern to be applied to names
- * @return {Array} An array of captureGroups objects. First captureGroups is for the first name.
- * @throws {TypeError} Arguments of incorrect type.
+ * @return {Array} An array of captureGroupsCollection objects. Returns null if invalid parameters.
  */
 function capture(names, glob) {
     "use strict";
     if (!Array.isArray(names)) {
-        throw new TypeError('Expects an array of strings.');
+        return null;
     }
 
-    if ((typeof glob !== 'string') || !glob.length) {
-        throw new TypeError('Expects non-empty string for glob pattern.');
+    if ((typeof glob !== 'string') || !glob) {
+        return null;
     }
 
     if (!names.length) {
@@ -73,16 +75,10 @@ function capture(names, glob) {
     }
 
     // Transform glob pattern to equivalent regex
-    let re = glToRe(glob, {extended: true});
+    let regex = glToRe(glob, {extended: true});
     // console.log('Gl-to-Re:    ' + re);
 
-    // Wrap various parts of a regex with capture groups
-    re = addCaptureGroups(re);
-    // console.log("re: " + re);
-
-    // Produce an array of all capture groups from a regex
-    let captureGroupsArray = extractCaptureGroups(re);
-    // Produce array of groups (* , ? or literal) from glob string
+   // Produce array of groups (* , ? or literal) from glob string
     // let captureGroupsArray = extractGroups(glob);
 
     // console.log("Capture groups: " + captureGroupsArray);
@@ -92,11 +88,11 @@ function capture(names, glob) {
     // re2 = new RegExp(re2.source.replace('(?:', '('));
     // console.log('Micromatch mod:' + re2);
 
-    // For each names received, return an array containing the match for each capture group,
-    // i.e. returns an array of array of match per capture group.
+    // For each names received, return an object containing the match for each capture group,
     return names.map(function buildMatchPerCGArray(name) {
-        let groupsObj = captureGroupsFactory();
-        groupsObj.buildGroups(name, re, captureGroupsArray);
+        let groupsObj = _captureGroupsCollectionFactory();
+        groupsObj.initGroups(regex);
+        groupsObj.buildGroups(name);
         return groupsObj;
     });
 }
@@ -104,14 +100,14 @@ function capture(names, glob) {
 /**
  * Add capture groups to a regular expression.
  * Example: abc.123.*DEF --> (abc)(.)(123)(.*)(DEF)
- * @method addCaptureGroups
+ * @method _addCaptureGroups
  * @private
  * @param re {RegExp} The regular expression to process
  * @returns {RegExp} Regular expression with capture groups added
  */
-function addCaptureGroups(re) {
+function _addCaptureGroups(re) {
     "use strict";
-    if ((typeof re.source) !== 'string') {
+    if (!re || (typeof re.source) !== 'string') {
         return null;
     }
     // Only enclose in capture group '.' that is not part of regex "\." or ".*"
@@ -170,15 +166,18 @@ function addCaptureGroups(re) {
 
 /**
  * Extracts the capture groups of a regular expression and returns them in an array
- * @method extractCaptureGroups
+ * @method _extractCaptureGroups
  * @private
  * @param re {RegExp} The regular expression to process
  * @returns {Array} List of extracted capture groups
  */
-function extractCaptureGroups(re) {
+function _extractCaptureGroups(re) {
     "use strict";
-    let captureGroups = [];
+    if (!re || (typeof re.source) !== 'string') {
+        return [];
+    }
     let source = re.source;
+    let captureGroups = [];
     let start = source.indexOf('(', 0);
 
     while (start !== -1) {
@@ -201,50 +200,82 @@ function extractCaptureGroups(re) {
     return captureGroups;
 }
 
-/*
-*                 - If the glob matches the given name, then each element of sub-array is an object
-*                   for each group of the glob pattern; Examples:
-*                              {type: 'literal', pattern: 'h', match: 'h'}
-*                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
-*                 - If there is no match, then the sub-array is empty;
-*                 - If there's an error, sub-array contains an Error object.
-*                 - Returns empty array if list of names received is empty
-*/
-function captureGroupsFactory() {
-    let groups      = [];   // list of all groups
-    let asterisk    = [];   // list of index for groups for * wildcard
-    let questionMark = [];  // list of index for groups for ? wildcard
 
-    function initGroups(g) {
-        buildGroups(g);
+/**
+ * Returns a captureGroupsCollection object.
+ * @return {Object}
+ * @private
+ */
+function _captureGroupsCollectionFactory() {
+    function initGroups(regex, text) {
+        if (!regex) {
+            return;
+        }
+        else {
+            // Wrap various parts of a regex with capture groups
+            this._regexWithCapture = _addCaptureGroups(regex);
+
+            // Produce an array of all capture groups from a regex
+            this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
+        }
+
+        if (text) {
+            this.buildGroups(text);
+        }
     }
 
-    function getGroups() {
-        return groups;
-    }
+    /**
+     * Builds an array of group objects for each capture group in regex
+     * @param text {String}
+     * @param [regex] {String} regex used for math provided text
+     * @return {Array} - If the glob matches the given text, then each element of sub-array is an object
+     *                   for each group of the glob pattern; Example for glob 'h*':
+     *                              {type: 'literal', pattern: 'h', match: 'h'}
+     *                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
+     *                 - If there is no match, then array is empty;
+     *                 - If there's an error, array contains an Error object.
+     */
+    function buildGroups(text, regex) {
+        if (typeof text !== 'string') {
+            this._groups = [ new TypeError('Invalid type! Expects a string.') ];
+            return this._groups;
+        }
 
-    function buildGroups(name, re, captureGroups) {
-        if (typeof name !== 'string' || !Array.isArray(captureGroups)) {
-            groups = [ new TypeError('Invalid type') ];
+        if (regex) {
+            this.initGroups(regex);
+        }
+
+        if (!Array.isArray(this._regexCaptureGroupArray) || !this._regexWithCapture) {
+            this._groups = [ new Error('Build failed! Object not initialized.') ];
+            return this._groups;
         }
 
         // let matches = path.basename(p).match(re);
-        let matches = name.match(re);
+        let matches = text.match(this._regexWithCapture);
         if (!matches) {
-            groups = [];
+            this._groups = [];
+            return this._groups;
         }
 
         // String.match() returns the entire match *and* the capture group matches;
         // so its array length must be > then the length of the capture groups array
-        if (matches.length <= captureGroups.length) {
-            groups = [ new Error(`Error: length mismatch! matches: ${matches.length}, groups: ${captureGroupsArray.length}`) ];
+        if (matches.length <= this._regexCaptureGroupArray.length) {
+            this._groups = [ new Error(`Error: length mismatch! matches: ${matches.length}, groups: ${this._regexCaptureGroupArray.length}`) ];
+            return this._groups;
         }
 
-        captureGroups.forEach(function (g, idx) {
+        // Resets properties
+        if (!this._groups) {
+            this._groups = [];
+            this._questionMark = null;
+            this._asterisk = null;
+
+        }
+        this._regexCaptureGroupArray.forEach(function (g, idx) {
             // only produce result for capture group for wildcard ? and *
             // [idx + 1] because whole match is first element of array of matches
             if (g === '?' || g === '*') {
-                groups.push({
+                this._groups.push({
                     type: "wildcard",
                     pattern: g,
                     match: matches[idx + 1]
@@ -253,14 +284,15 @@ function captureGroupsFactory() {
             else {
                 // Remove escape character \ from the regex pattern.
                 g = g.replace(/\\/g, '');
-                groups.push({
+                this._groups.push({
                     type: "literal",
                     pattern: g,
                     match: matches[idx + 1]
                 });
             }
-        });
+        }, this);
 
+        return this._groups;
         // console.log(matchPerCG);
         // let match2 = p.match(re2);
         // console.log("Micromatch:\n");
@@ -268,32 +300,74 @@ function captureGroupsFactory() {
         // console.log('\n');
     }
 
+    function getGroups() {
+        return this._groups;
+    }
+
+    /**
+     *
+     * @return {Array | null} Array of objects for each wildcard '*' capture group; null if collection not built
+     */
     function getAsterisk() {
-        if (groups) {
-            groups.filter(function findAsterisk(g) {
-                if (g.type === 'wildcard') {
-                    if (g.pattern === '*' && g.pattern === '?') {
-                        return true;
-                    }
+        // if _groups initialized (not null)...
+        if (this._groups) {
+            if (!this._groups.length) {
+                this._asterisk = [];
+            }
+            else {
+                // if _asterisk not already built
+                if (!Array.isArray(this._asterisk)) {
+                    this._asterisk = this._groups.filter(function findAsterisk(g) {
+                        return (g.type === 'wildcard' && g.pattern === '*');
+                    });
                 }
-            })
+            }
+            return this._asterisk;
         }
         else {
-            return [];
+            return null;
         }
     }
 
+    /**
+     *
+     * @return {Array | null} Array of objects for each wildcard '?' capture group; null if collection not built
+     */
     function getQuestionMark() {
-
+        // if _groups initialized (not null)
+        if (this._groups) {
+            if (!this._groups.length) {
+                this._questionMark = [];
+            }
+            else {
+                // if _questionsMark is not already built
+                if (!Array.isArray(this._questionMark)) {
+                    this._questionMark = this._groups.filter(function findQuestionMark(g) {
+                        return (g.type === 'wildcard' && g.pattern === '?');
+                    });
+                }
+            }
+            return this._questionMark;
+        }
+        else {
+            return null;
+        }
     }
 
-    return {
-        initGroups: initGroups,
-        getGroups: getGroups,
-        buildGroups: buildGroups,
-        getAsterisk: getAsterisk,
-        getQuestionMark: getQuestionMark
-    };
+    const captureGroupsCollection = Object.assign({
+        _regexWithCapture: null,
+        _regexCaptureGroupArray: null,
+        _groups: null,          // array of all groups
+        _asterisk: null,        // array of groups for * wildcard
+        _questionMark: null,    // array of groups for ? wildcard
+    }, groupsCollectionInterface);
+    captureGroupsCollection.initGroups = initGroups;
+    captureGroupsCollection.buildGroups = buildGroups;
+    captureGroupsCollection.getGroups = getGroups;
+    captureGroupsCollection.getAsterisk = getAsterisk;
+    captureGroupsCollection.getQuestionMark = getQuestionMark;
+    
+    return captureGroupsCollection;
 }
 
 module.exports.capture = capture;
