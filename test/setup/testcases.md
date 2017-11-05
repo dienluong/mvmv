@@ -10,15 +10,17 @@
 1. Supports filename with "("
 2. Supports filename with multiple "."
 
-## Multiple Wildcards
+## Wildcards
 1. Supports the use of a mix of * and ? within same glob pattern.
 2. Supports the use of multiple *
 3. Supports the use of multiple ?
+4. \* may match zero character
+5. ** (multiple consecutive *) is same as a single *
+6. ? must match one character
 
 ## Literal Matches
-1. Works even if * matches zero character
-2. Works even when there are multiple literals in the glob pattern
-3. Works even with glob patterns containing literal ^ and $
+1. Works even when there are multiple literals in the glob pattern
+2. Works even with glob patterns containing literal ^ and $
 
 
 # Notes
