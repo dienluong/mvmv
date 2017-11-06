@@ -72,20 +72,34 @@ describe('When parameters of invalid type are passed', function () {
     });
 });
 
-describe('When string is passed in "names" argument', function () {
+/*
+            Source glob doesn't match
+ */
+describe('When source glob does not match anything', function () {
     describe('renamer.rename(names, srcGlob, dstGlob)', function () {
-        it('should return a result array with a single element', function () {
-            let result = renamer.rename('axl-rose', '*', '*');
-            expect(result.length).to.eql(1);
-            expect(result[0]).to.eql('axl-rose');
+        it.only('should return empty string as result', function () {
+            let result = renamer.rename(['alx-rose.red', '_1234'], '*.????', '*');
+            expect(result[0]).to.be.empty;
+            expect(result[1]).to.be.empty;
 
-            result = renamer.rename('', '?', '?');
-            expect(result.length).to.eql(1);
+            result = renamer.rename('^$', '?', '?');
+            expect(result[0]).to.be.empty;
+
+            result = renamer.rename('.', '*??', '*?');
+            expect(result[0]).to.be.empty;
+
+            result = renamer.rename('123.456', '*_*', '*');
+            expect(result[0]).to.be.empty;
+
+            result = renamer.rename('1234', '123', '6789');
             expect(result[0]).to.be.empty;
         });
     });
 });
 
+/*
+            # wildcard in DG > in SG
+ */
 describe('When number of given wildcard in destination glob is higher than in source glob', function () {
     describe('renamer.rename(names, srcGlob, dstGlob)', function () {
         it('should return empty string as result', function () {
@@ -98,12 +112,16 @@ describe('When number of given wildcard in destination glob is higher than in so
             result = renamer.rename('.', '?', '??');
             expect(result[0]).to.be.empty;
 
-            result = renamer.rename('.', '*?', '??');
+            result = renamer.rename('^bruce.wayne$', '*?', '??');
             expect(result[0]).to.be.empty;
         });
     });
 });
 
+
+/*
+            # wildcard in DG <= in SG
+ */
 describe('When number of given wildcard in destination glob is equal or fewer than in source glob', function () {
     describe('renamer.rename(names, srcGlob, dstGlob)', function () {
         it('should return computed new name', function () {
@@ -125,18 +143,19 @@ describe('When number of given wildcard in destination glob is equal or fewer th
     });
 });
 
-describe('When source glob does not match anything', function () {
+/*
+            When "names" is a string
+ */
+describe('When string is passed in "names" argument', function () {
     describe('renamer.rename(names, srcGlob, dstGlob)', function () {
-        it('should return empty string as result', function () {
-            let result = renamer.rename('alx-rose.red', '*.????', '*');
-            expect(result[0]).to.be.empty;
+        it('should return a result array with a single element', function () {
+            let result = renamer.rename('axl-rose', '*', '*');
+            expect(result.length).to.eql(1);
+            expect(result[0]).to.eql('axl-rose');
 
-            result = renamer.rename('^$', '?', '?');
-            expect(result[0]).to.be.empty;
-
-            result = renamer.rename('^bruce.wayne$', '*?', '??');
+            result = renamer.rename('', '?', '?');
+            expect(result.length).to.eql(1);
             expect(result[0]).to.be.empty;
         });
     });
 });
-
