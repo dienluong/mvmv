@@ -315,7 +315,7 @@ function _captureGroupsCollectionFactory() {
     function getAsterisk() {
         // if _groups initialized (not null)...
         if (this._groups) {
-            if (!this._groups.length) {
+            if (!this.hasMatch()) {
                 this._asterisk = [];
             }
             else {
@@ -340,7 +340,7 @@ function _captureGroupsCollectionFactory() {
     function getQuestionMark() {
         // if _groups initialized (not null)
         if (this._groups) {
-            if (!this._groups.length) {
+            if (!this.hasMatch()) {
                 this._questionMark = [];
             }
             else {
