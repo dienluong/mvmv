@@ -304,7 +304,6 @@ function _captureGroupsCollectionFactory() {
         return this._groups;
     }
 
-    // TODO: write test cases
     function hasMatch() {
         return (this._groups !== null && this._groups.length !== 0 && !(this._groups[0] instanceof Error));
     }
