@@ -53,7 +53,7 @@ function deconstruct(glob) {
 }
 
 /**
- * For each element in names array (1st argument), return a captureGroupCollection containing the match of each parts of the glob pattern (2nd argument).
+ * For each element in names array (1st argument), return a captureGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
  * Example: ?omer.* => Parts: 1) '?', 2) 'omer.', 3) '*'
  * @method capture
  * @param names {Array} List of names
@@ -89,7 +89,7 @@ function capture(names, glob) {
     // console.log('Micromatch mod:' + re2);
 
     // For each names received, return an object containing the match for each capture group,
-    return names.map(function buildMatchPerCGArray(name) {
+    return names.map(function buildCaptureGroupsCollection(name) {
         let groupsObj = _captureGroupsCollectionFactory();
         groupsObj.initGroups(regex);
         groupsObj.buildGroups(name);
@@ -203,7 +203,7 @@ function _extractCaptureGroups(re) {
 
 /**
  * Returns a captureGroupsCollection object.
- * @return {Object}
+ * @return {Object} Object implementing the captureGroupsCollection interface.
  * @private
  */
 function _captureGroupsCollectionFactory() {
@@ -228,8 +228,8 @@ function _captureGroupsCollectionFactory() {
      * Builds an array of group objects for each capture group in regex
      * @param text {String}
      * @param [regex] {String} regex used for math provided text
-     * @return {Array} - If the glob matches the given text, then each element of sub-array is an object
-     *                   for each group of the glob pattern; Example for glob 'h*':
+     * @return {Array} - If the glob matches the given text, then each element of the array is an object
+     *                   for each "group" of the glob pattern; Example for glob 'h*':
      *                              {type: 'literal', pattern: 'h', match: 'h'}
      *                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
      *                 - If there is no match, then array is empty;
@@ -304,9 +304,14 @@ function _captureGroupsCollectionFactory() {
         return this._groups;
     }
 
+    // TODO: write test cases
+    function hasMatch() {
+        return (this._groups !== null && this._groups.length !== 0 && !(this._groups[0] instanceof Error));
+    }
+
     /**
      *
-     * @return {Array | null} Array of objects for each wildcard '*' capture group; null if collection not built
+     * @return {Array | null} Array containing a match object for each wildcard '*' capture group; null if collection not built
      */
     function getAsterisk() {
         // if _groups initialized (not null)...
@@ -331,7 +336,7 @@ function _captureGroupsCollectionFactory() {
 
     /**
      *
-     * @return {Array | null} Array of objects for each wildcard '?' capture group; null if collection not built
+     * @return {Array | null} Array containg a match object for each wildcard '?' capture group; null if collection not built
      */
     function getQuestionMark() {
         // if _groups initialized (not null)
@@ -364,9 +369,10 @@ function _captureGroupsCollectionFactory() {
     captureGroupsCollection.initGroups = initGroups;
     captureGroupsCollection.buildGroups = buildGroups;
     captureGroupsCollection.getGroups = getGroups;
+    captureGroupsCollection.hasMatch = hasMatch;
     captureGroupsCollection.getAsterisk = getAsterisk;
     captureGroupsCollection.getQuestionMark = getQuestionMark;
-    
+
     return captureGroupsCollection;
 }
 
