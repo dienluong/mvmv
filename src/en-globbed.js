@@ -14,21 +14,25 @@ const groupsCollectionInterface = require('../src/captureGroupsCollectionInterfa
 /**
  * Returns the different parts (literals, wildcards) of a glob pattern.
  * @param glob {String} Glob to extract the parts from
+ * @param [options] {Object} options.collapse indicates whether consecutive * in glob pattern should collapse into a single *; default is false.
  * @return {Array} The parts of the glob; empty array if glob is invalid (e.g. empty string)
  *                  Example: For glob 'abc*def' -> [ 'abc', '*', 'def' ]
  * TODO: Write test cases!
  */
-function deconstruct(glob) {
+function deconstruct(glob, options) {
     "use strict";
     let groups = [];
     let marker;
-    let subGlob;
+    let subGlob = glob;
     // if not a string or empty string, return empty array
     if (typeof glob !== 'string' || !glob) {
         return [];
     }
-    // Any multiple consecutive * is equivalent to a single *
-    subGlob = glob.replace(/\*{2,}/,'*');
+
+    if (options && options.collapse) {
+        // Any multiple consecutive * is equivalent to a single *
+        subGlob = glob.replace(/\*{2,}/,'*');
+    }
 
     marker = subGlob.search(/[*|?]/g);
     while (marker !== -1) {
