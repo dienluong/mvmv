@@ -30,7 +30,7 @@ function rename(names, srcGlob, dstGlob) {
     // extract matches for each wildcard (and literal) part of the glob
     let srcCaptureGroupsArray = englobbed.capture(names, srcGlob);
     // Deconstruct the glob into literal and wildcard parts
-    let dstGlobParts = englobbed.deconstruct(dstGlob);
+    let dstGlobParts = englobbed.deconstruct(dstGlob, { collapse: false });
     let newNames = names.map(function buildNewName(name, iName) {
         // if source glob can't match the name, then can't construct new name
         if (!srcCaptureGroupsArray[iName].hasMatch()) {
