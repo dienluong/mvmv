@@ -1,7 +1,7 @@
 'use strict';
 
-const MockFs    = require('mock-fs');
-const Globby    = require('globby');
+const mockFs    = require('mock-fs');
+const globby    = require('globby');
 const fs        = require('fs');
 const path      = require('path');
 const FilenameGenerator = require('natural-filename-generator');
@@ -9,55 +9,55 @@ const FilenameGenerator = require('natural-filename-generator');
 const expect  = require('chai').expect;
 const sinon   = require('sinon');
 
-const Parser  = require('../src/mv-parser');
+const parser  = require('../src/mv-parser');
 const TEST_PATH = path.join('test', 'test-data');
 
 describe('mv-parser', function () {
     describe('resolve()', function () {
         it('should return [] when none matched', function () {
             let pattern = path.join(TEST_PATH, '*.bob');
-            let result = this.parser.resolve(pattern);
-            expect(this.parser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(Globby.sync(pattern));
+            let result = this.myParser.resolve(pattern);
+            expect(this.myParser.resolve.returned([])).to.be.true;
+            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
 
             pattern = '*.txt';
-            result = this.parser.resolve(pattern);
-            expect(this.parser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(Globby.sync(pattern));
+            result = this.myParser.resolve(pattern);
+            expect(this.myParser.resolve.returned([])).to.be.true;
+            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
 
             pattern = '*.txt/';
-            result = this.parser.resolve(pattern);
-            expect(this.parser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(Globby.sync(pattern));
+            result = this.myParser.resolve(pattern);
+            expect(this.myParser.resolve.returned([])).to.be.true;
+            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
 
             pattern = path.join('.', '*.JPEG');
-            result = this.parser.resolve(pattern);
-            expect(this.parser.resolve.returned([])).to.be.true;
-            expect(result).to.be.eql(Globby.sync(pattern));
+            result = this.myParser.resolve(pattern);
+            expect(this.myParser.resolve.returned([])).to.be.true;
+            expect(result).to.be.eql(globby.sync(pattern));
             expect(result).to.be.empty;
         });
 
         it('should return array of file names matching glob pattern', function () {
             // Test pattern "path/*.txt"
             let pattern = path.join(TEST_PATH, '*.txt');
-            let result = this.parser.resolve(pattern);
+            let result = this.myParser.resolve(pattern);
             // Check with source array (fullnamesMap)
             let sourceNames = this.fullnamesMap.get('txt');
             expect(result).to.have.members(sourceNames);
             // Cross-check with result from another glob module: globby
-            let globbyResult = Globby.sync(pattern);
+            let globbyResult = globby.sync(pattern);
             expect(result).to.eql(globbyResult);
 
             // Test pattern "path/*"
             pattern = path.join(TEST_PATH, '*');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             // Note: Array.from returns an array of array; using Array.concat to flatten the arrays
             sourceNames = [].concat.apply([], Array.from(this.fullnamesMap.values()));
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.eql(globbyResult);
             result = result.map(function (res) {
                 return path.basename(res);
@@ -66,60 +66,60 @@ describe('mv-parser', function () {
 
             // Test pattern "path/*.JP?G"
             pattern = path.join(TEST_PATH, '*.JP?G');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('JPEG');
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.eql(globbyResult);
 
             // Test pattern "path/*.a.b
             pattern = path.join(TEST_PATH, '*.a.b');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('a.b');
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
             // Test pattern "path/*.z..
             pattern = path.join(TEST_PATH, '*.z..');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('z..');
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
             // Test pattern "path/*^
             pattern = path.join(TEST_PATH, '*^');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('up^');
             sourceNames = sourceNames.concat(this.fullnamesMap.get('hi^^'));
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
             // Test pattern "path/^*.???
             pattern = path.join(TEST_PATH, '^*.???');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('up^');
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
             // Test pattern "path/$$*.???$
             pattern = path.join(TEST_PATH, '$$*.???$');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = [ path.join(TEST_PATH, '$$twodollars.js$$') ];
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
             // Test pattern "path/*.js*
             pattern = path.join(TEST_PATH, '*.js*');
-            result = this.parser.resolve(pattern);
+            result = this.myParser.resolve(pattern);
             sourceNames = this.fullnamesMap.get('js');
             sourceNames = sourceNames.concat(this.fullnamesMap.get('js$$'));
             expect(result).to.have.members(sourceNames);
-            globbyResult = Globby.sync(pattern);
+            globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
         });
 
@@ -166,23 +166,17 @@ describe('mv-parser', function () {
             });
 
             // creates mock test folder and files
-            MockFs({
+            mockFs({
                 'test/test-data': folderContent
             });
+
+            this.myParser = parser.create();
+            sinon.spy(this.myParser, 'resolve');
         });
 
         after(function () {
-            MockFs.restore();
-        });
-
-        beforeEach(function () {
-            this.parser = Parser.create();
-            sinon.spy(this.parser, 'resolve');
-
-        });
-
-        afterEach(function () {
-            this.parser.resolve.restore();
+            mockFs.restore();
+            this.myParser.resolve.restore();
         });
     });
 });
