@@ -3,10 +3,10 @@ const englobbed     = require('../src/en-globbed');
 
 /**
  *
- * @param names {Array | string} List of original names to rename or a single name (string)
+ * @param names {String[] | string} List of original names to rename or a single name (string)
  * @param srcGlob {String} Glob pattern used to match the original names
  * @param dstGlob {String} Glob pattern used to contruct new names
- * @return {Array} List of new names
+ * @return {String[]} List of new names
  * @throws {TypeError} A TypeError object
  */
 function rename(names, srcGlob, dstGlob) {

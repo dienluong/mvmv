@@ -15,7 +15,7 @@ const groupsCollectionInterface = require('../src/captureGroupsCollectionInterfa
  * Returns the different parts (literals, wildcards) of a glob pattern.
  * @param glob {String} Glob to extract the parts from
  * @param [options] {Object} options.collapse indicates whether consecutive * in glob pattern should collapse into a single *; default is false.
- * @return {Array} The parts of the glob; empty array if glob is invalid (e.g. empty string)
+ * @return {String[]} The parts of the glob; empty array if glob is invalid (e.g. empty string)
  *                  Example: For glob 'abc*def' -> [ 'abc', '*', 'def' ]
  * TODO: Write test cases!
  */
@@ -60,9 +60,9 @@ function deconstruct(glob, options) {
  * For each element in names array (1st argument), return a captureGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
  * Example: ?omer.* => Parts: 1) '?', 2) 'omer.', 3) '*'
  * @method capture
- * @param names {Array} List of names
+ * @param names {String[]} List of names
  * @param glob {String} The glob pattern to be applied to names
- * @return {Array} An array of captureGroupsCollection objects. Returns null if invalid parameters.
+ * @return {captureGroupsCollection[]} An array of captureGroupsCollection objects. Returns null if invalid parameters.
  */
 function capture(names, glob) {
     "use strict";
@@ -173,7 +173,7 @@ function _addCaptureGroups(re) {
  * @method _extractCaptureGroups
  * @private
  * @param re {RegExp} The regular expression to process
- * @returns {Array} List of extracted capture groups
+ * @returns {String[]} List of extracted capture groups
  */
 function _extractCaptureGroups(re) {
     "use strict";
@@ -207,7 +207,7 @@ function _extractCaptureGroups(re) {
 
 /**
  * Returns a captureGroupsCollection object.
- * @return {Object} Object implementing the captureGroupsCollection interface.
+ * @return {captureGroupsCollection} Object implementing the captureGroupsCollection interface.
  * @private
  */
 function _captureGroupsCollectionFactory() {
@@ -232,8 +232,8 @@ function _captureGroupsCollectionFactory() {
      * Builds an array of group objects for each capture group in regex
      * @param text {String}
      * @param [regex] {String} regex used for math provided text
-     * @return {Array} - If the glob matches the given text, then each element of the array is an object
-     *                   for each "group" of the glob pattern; Example for glob 'h*':
+     * @return {Object[]} - If the glob matches the given text, then each element of the array is an object
+     *                          for each "group" of the glob pattern; Example for glob 'h*':
      *                              {type: 'literal', pattern: 'h', match: 'h'}
      *                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
      *                 - If there is no match, then array is empty;
@@ -314,7 +314,7 @@ function _captureGroupsCollectionFactory() {
 
     /**
      *
-     * @return {Array | null} Array containing a match object for each wildcard '*' capture group; null if collection not built
+     * @return {Object[] | null} Array containing a match object for each wildcard '*' capture group; null if collection not built
      */
     function getAsterisk() {
         // if _groups initialized (not null)...
@@ -339,7 +339,7 @@ function _captureGroupsCollectionFactory() {
 
     /**
      *
-     * @return {Array | null} Array containg a match object for each wildcard '?' capture group; null if collection not built
+     * @return {Object[] | null} Array containg a match object for each wildcard '?' capture group; null if collection not built
      */
     function getQuestionMark() {
         // if _groups initialized (not null)
