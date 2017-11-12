@@ -187,6 +187,8 @@ describe('When source glob is a literal', function () {
             expect(result[0]).to.be.empty;
             result = renamer.rename('uvwxyz', 'uvwxyz', '123456*');
             expect(result[0]).to.be.empty;
+            result = renamer.rename('uvwxyz', 'uvwxy', '12345');
+            expect(result[0]).to.be.empty;
         });
     });
 });
@@ -216,7 +218,7 @@ describe('When destination glob is a literal', function () {
  */
 describe('When names is an array of string', function () {
     describe('renamer.rename(names, srcGlob, dstGlob)', function () {
-        it.only('should return an array of new names', function () {
+        it('should return an array of new names', function () {
             let result = renamer.rename(['abcde', '1234', '!@#$%^&'], '*', 'uvwxyz');
             expect(result.length).to.eql(3);
             expect(result[0]).to.eql('uvwxyz');
