@@ -3,13 +3,13 @@ const englobbed     = require('../src/en-globbed');
 
 /**
  *
- * @param names {String[] | string} List of original names to rename or a single name (string)
+ * @param names {String[] | string} List of original names to compute new names for, or a single name (string)
  * @param srcGlob {String} Glob pattern used to match the original names
  * @param dstGlob {String} Glob pattern used to contruct new names
  * @return {String[]} List of new names
  * @throws {TypeError} A TypeError object
  */
-function rename(names, srcGlob, dstGlob) {
+function computeName(names, srcGlob, dstGlob) {
     if ((typeof srcGlob !== 'string' || !srcGlob) || (typeof dstGlob !== 'string' || !dstGlob)) {
         throw new TypeError('Invalid type for glob pattern! Must be a non-empty string.');
     }
@@ -99,4 +99,4 @@ function rename(names, srcGlob, dstGlob) {
     // return newNames;
 // }
 
-module.exports.rename = rename;
+module.exports.computeName = computeName;
