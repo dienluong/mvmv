@@ -7,66 +7,66 @@ const renamer = require('../src/mv-renamer');
 describe('When parameters of invalid type are passed', function () {
     describe('renamer.computeName(names, srcGlob, dstGlob)', function () {
         beforeEach(function () {
-            this.computeName = renamer.computeName;
-            sinon.spy(this, 'computeName');
+            this.myRenamer = renamer;
+            sinon.spy(this.myRenamer, 'computeName');
         });
 
         afterEach(function () {
-            this.computeName.restore();
+            this.myRenamer.computeName.restore();
         });
 
         it('should throw a TypeError', function () {
             try {
-                this.computeName({}, '*.txt', '*.out');
+                this.myRenamer.computeName({}, '*.txt', '*.out');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for names!  Must be a string or an Array of string');
             }
             try {
-                this.computeName(1, '*.txt', '*.out');
+                this.myRenamer.computeName(1, '*.txt', '*.out');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for names!  Must be a string or an Array of string');
             }
             try {
-                this.computeName(['bob-smith'], [], '???-*');
+                this.myRenamer.computeName(['bob-smith'], [], '???-*');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
             try {
-                this.computeName('bob-smith', '*-???', 0);
+                this.myRenamer.computeName('bob-smith', '*-???', 0);
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
             try {
-                this.computeName(['bob-smith'], '', {});
+                this.myRenamer.computeName(['bob-smith'], '', {});
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
             try {
-                this.computeName(['bob-smith'], '???-*', '');
+                this.myRenamer.computeName(['bob-smith'], '???-*', '');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
             try {
-                this.computeName('bob-smith', 1, '');
+                this.myRenamer.computeName('bob-smith', 1, '');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
 
-            expect(this.computeName.alwaysThrew('TypeError')).to.be.true;
+            expect(this.myRenamer.computeName.alwaysThrew('TypeError')).to.be.true;
         });
     });
 });
