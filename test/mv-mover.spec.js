@@ -3,10 +3,11 @@
 const mockFs        = require('mock-fs');
 const FilenameGen   = require('natural-filename-generator');
 const path          = require('path');
+const fs            = require('fs');
 const globby        = require('globby');
 
 const expect        = require('chai').expect;
-// const sinon         = require('sinon');
+const sinon         = require('sinon');
 
 const mover         = require('../src/mv-mover');
 const parser        = require('../src/mv-parser');
@@ -14,7 +15,7 @@ const TEST_PATH     = path.join('test', 'test-data');
 
 describe('mv-mover', function () {
     describe('commit()', function () {
-        it('should rename *.txt files to *.doc on file system', function () {
+        it('should rename *.txt files to *.doc on file system, and return []', function () {
             let srcPattern  = path.join(TEST_PATH, '*.txt');
             let dstPattern  = path.join(TEST_PATH, '*.doc');
             let filesList   = this.myParser.resolve(srcPattern);
@@ -23,60 +24,141 @@ describe('mv-mover', function () {
             });
 
             let returned = this.myMover.commit(filesList, newFilesList);
+            // Cross-verification with globby, parser.resolve and fs.existsSync
             expect(globby.sync(srcPattern)).to.be.empty;
             expect(this.myParser.resolve(srcPattern)).to.be.empty;
             expect(globby.sync(dstPattern)).to.have.members(newFilesList);
             expect(this.myParser.resolve(dstPattern)).to.have.members(newFilesList);
             expect(this.myParser.resolve(dstPattern).length).to.eql(2);
+            newFilesList.forEach(function (name) {
+                expect(fs.existsSync(name)).to.be.true;
+            });
+            filesList.forEach(function (name) {
+                expect(fs.existsSync(name)).to.be.false;
+            });
             expect(returned).to.be.empty;
         });
 
-        it('should return the indexes of names for which rename failed', function () {
+        it('should invoke the callback if one is provided', function () {
+            let filesList  = this.myParser.resolve(path.join(TEST_PATH, '*.JS'));
+            filesList.push('non-existing.file');
+            filesList.push(123);
+            filesList = filesList.concat(this.myParser.resolve(path.join(TEST_PATH, '*.jpeg')));
+            filesList = filesList.concat(this.myParser.resolve(path.join(TEST_PATH, '*.TXT')));
+            expect(filesList.length).to.eql(8);
+            let newFilesList = [path.join(TEST_PATH, '1.jav'),
+                                path.join(TEST_PATH, '2.JAV'),
+                                'existing.document',
+                                'file.123',
+                                path.join(TEST_PATH),
+                                789,
+                                'success.new'];
+
+            this.myCallback = function (err, old, nyou) {
+                if (err) {
+                    console.log(`From callback: ${err}`);
+                }
+                else {
+                    console.log(`From callback: Renamed ${old} to ${nyou}`);
+                }
+            };
+
+            sinon.spy(this, 'myCallback');
+
+            let returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
+            // Renames failed: [2, 3, 4, 5, 7]
+            expect(returned.length).to.eql(5);
+            expect(returned).to.have.members([2, 3, 4, 5, 7]);
+            expect(this.myCallback.callCount).to.eql(8);
+            this.myCallback.args.forEach(function (arg, idx) {
+                switch (idx) {
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 7:
+                        // For rename failure #2, 3, 4, 5 and 7, callback should be called with Error as first argument
+                        expect(arg[0]).to.be.instanceof(Error);
+                        break;
+                    default:
+                        // For rename success...
+                        expect(arg[0]).to.be.null;
+                }
+            });
+
+            this.myCallback.restore();
+        });
+
+        it('should handle gracefully non-function passed as callback', function () {
+            // TODO...
+        });
+
+
+        it('should return an [] of indexes of names for which rename failed', function () {
             let filesList  = this.myParser.resolve(path.join(TEST_PATH, '*.js'));
             filesList.push('non-existing.file');
+            filesList.push(123);
             filesList = filesList.concat(this.myParser.resolve(path.join(TEST_PATH, '*.JPEG')));
-            expect(filesList.length).to.eql(5);
-            let newFilesList = [path.join(TEST_PATH, '1.txt'),
-                                path.join(TEST_PATH, '2.TXT'),
+            filesList = filesList.concat(this.myParser.resolve(path.join(TEST_PATH, '*.TXT')));
+            expect(filesList.length).to.eql(8);
+            let newFilesList = [path.join(TEST_PATH, '1.jav'),
+                                path.join(TEST_PATH, '2.JAV'),
                                 'existing.document',
-                                path.join(TEST_PATH)];
+                                'file.123',
+                                path.join(TEST_PATH),
+                                789,
+                                'success.new'];
 
             let returned = this.myMover.commit(filesList, newFilesList);
             // Renames failed:
             // [2] because original file does not exist
-            // [3] because path without filename,
-            // [4] because no corresponding item in new name array
-            expect(returned).to.have.members([2, 3, 4]);
-            expect(returned.length).to.eql(3);
+            // [3] because original file name is not a string (e.g. number 123)
+            // [4] because new filename is a path without filename,
+            // [5] because new file name is not a string (e.g. number 789)
+            // [7] because no corresponding new name in array
+            expect(returned).to.have.members([2, 3, 4, 5, 7]);
+            expect(returned.length).to.eql(5);
         });
 
-        // beforeEach(function () {
-        //     var g = new FilenameGen();
-        //
-        //     // creates mock test folder and files
-        //     mockFs({
-        //            [g.generate('txt')] : 'created by mock-fs',
-        //            [g.generate('txt')] : 'created by mock-fs',
-        //            [g.generate('txt')] : 'created by mock-fs',
-        //            [g.generate('TXT')] : 'created by mock-fs',
-        //            [g.generate('TXT')] : 'created by mock-fs',
-        //            [g.generate('TXT')] : 'created by mock-fs',
-        //            [g.generate('jpg')] : 'created by mock-fs',
-        //            [g.generate('JPG')] : 'created by mock-fs',
-        //            [g.generate('jpeg')] : 'created by mock-fs',
-        //            [g.generate('JPEG')] : 'created by mock-fs',
-        //            [g.generate('png')] : 'created by mock-fs',
-        //            [g.generate('gif')] : 'created by mock-fs',
-        //            [g.generate('GIF')] : 'created by mock-fs',
-        //            [g.generate('')] : 'created by mock-fs'
-        //     });
-        //
-        //     this.myMover = mover.create();
-        // });
-        //
-        // afterEach(function () {
-        //     mockFs.restore();
-        // });
+        it('should throw a TypeError if invalid argument type passed', function () {
+            sinon.spy(this.myMover, 'commit');
+
+            try {
+                this.myMover.commit(123, ['somefile.name']);
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(TypeError)
+                .and.have.property('message', 'Expects arrays of old and new names.');
+            }
+
+            try {
+                this.myMover.commit('oldfilename.txt', ['somefile.name']);
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(TypeError)
+                .and.have.property('message', 'Expects arrays of old and new names.');
+            }
+
+            try {
+                this.myMover.commit(['afile.name'], 'another.name');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(TypeError)
+                .and.have.property('message', 'Expects arrays of old and new names.');
+            }
+
+            try {
+                this.myMover.commit(['afile.name']);
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(TypeError)
+                .and.have.property('message', 'Expects arrays of old and new names.');
+            }
+
+            expect(this.myMover.commit.alwaysThrew('TypeError')).to.be.true;
+
+            this.myMover.commit.restore();
+        });
 
 
         /* ----------------------------------------------------- */
@@ -85,6 +167,10 @@ describe('mv-mover', function () {
         before(function () {
             this.myMover    = mover.create();
             this.myParser   = parser.create();
+
+        });
+
+        beforeEach(function () {
             const g         = new FilenameGen();
             const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
             let folderContent = {};
@@ -128,8 +214,9 @@ describe('mv-mover', function () {
             });
         });
 
-        after(function () {
+        afterEach(function () {
             mockFs.restore();
         });
+
     });
 });
