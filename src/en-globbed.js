@@ -339,7 +339,7 @@ function _captureGroupsCollectionFactory() {
 
     /**
      *
-     * @return {Object[] | null} Array containg a match object for each wildcard '?' capture group; null if collection not built
+     * @return {Object[] | null} Array containing a match object for each wildcard '?' capture group; null if collection not built
      */
     function getQuestionMark() {
         // if _groups initialized (not null)
