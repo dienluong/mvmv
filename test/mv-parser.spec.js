@@ -14,7 +14,7 @@ const TEST_PATH = path.join('test', 'test-data');
 
 describe('mv-parser', function () {
     describe('resolve()', function () {
-        it('should return [] when none matched', function () {
+        it('should return [] if no file matched', function () {
             let pattern = path.join(TEST_PATH, '*.bob');
             let result = this.myParser.resolve(pattern);
             expect(this.myParser.resolve.returned([])).to.be.true;
@@ -136,13 +136,15 @@ describe('mv-parser', function () {
             // Build a Map of all files.  Key is the file extension and value is an array of the filenames with that extension
             // Also builds the object "folderContent" for mock-fs
             for (let i = extensions.length - 1; i >= 0; i -= 1) {
-                let names = [ path.join(TEST_PATH, g.generate(extensions[i])), path.join(TEST_PATH, g.generate(extensions[i])) ];
+                const name1 = g.generate(extensions[i]);
+                const name2 = g.generate(extensions[i]);
+                let names = [ path.join(TEST_PATH, name1), path.join(TEST_PATH, name2) ];
                 this.fullnamesMap.set(extensions[i], names);
-                Object.defineProperty(folderContent, path.basename(names[0]), {
+                Object.defineProperty(folderContent, name1, {
                     enumerable: true,
                     value: 'created by mock-fs'
                 });
-                Object.defineProperty(folderContent, path.basename(names[1]), {
+                Object.defineProperty(folderContent, name2, {
                     enumerable: true,
                     value: 'created by mock-fs'
                 });

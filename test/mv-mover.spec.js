@@ -77,11 +77,11 @@ describe('mv-mover', function () {
                     case 4:
                     case 5:
                     case 7:
-                        // For rename failure #2, 3, 4, 5 and 7, callback should be called with Error as first argument
+                        // For rename failures #2, 3, 4, 5 and 7, callback should be called with Error as first argument
                         expect(arg[0]).to.be.instanceof(Error);
                         break;
                     default:
-                        // For rename success...
+                        // For rename success cases...
                         expect(arg[0]).to.be.null;
                 }
             });
@@ -91,6 +91,8 @@ describe('mv-mover', function () {
 
         it('should handle gracefully non-function passed as callback', function () {
             // TODO...
+            let filesList    = this.myParser.resolve(path.join(TEST_PATH, '*'));
+            let newFilesList = []
         });
 
 
@@ -176,16 +178,19 @@ describe('mv-mover', function () {
             let folderContent = {};
             this.fullnamesMap = new Map();
 
-            // Build a Map of all files.  Key is the file extension and value is an array of the filenames with that extension
+            // Build a Map tracking all files in the mock filesystem (created w/ mock-fs).
+            // Key is the file extension and value is an array of the filenames with that extension
             // Also builds the object "folderContent" for mock-fs
             for (let i = extensions.length - 1; i >= 0; i -= 1) {
-                let names = [ path.join(TEST_PATH, g.generate(extensions[i])), path.join(TEST_PATH, g.generate(extensions[i])) ];
+                const name1 = g.generate(extensions[i]);
+                const name2 = g.generate(extensions[i]);
+                let names = [ path.join(TEST_PATH, name1), path.join(TEST_PATH, name2) ];
                 this.fullnamesMap.set(extensions[i], names);
-                Object.defineProperty(folderContent, path.basename(names[0]), {
+                Object.defineProperty(folderContent, name1, {
                     enumerable: true,
                     value: 'created by mock-fs'
                 });
-                Object.defineProperty(folderContent, path.basename(names[1]), {
+                Object.defineProperty(folderContent, name2, {
                     enumerable: true,
                     value: 'created by mock-fs'
                 });
