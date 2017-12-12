@@ -2,7 +2,7 @@
 const expect  = require('chai').expect;
 const sinon   = require('sinon');
 
-const renamer = require('../src/mv-renamer');
+const renamer = require('../src/mv-renamer').create();
 
 describe('When parameters of invalid type are passed', function () {
     describe('renamer.computeName(names, srcGlob, dstGlob)', function () {
