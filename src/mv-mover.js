@@ -1,10 +1,8 @@
 'use strict';
 // const globule = require('globule');
-// const rename    = require('../src/mv-renamer').rename;
 const fs        = require('fs');
 
 function createMover() {
-    "use strict";
     return {
         commit: commit
     };
