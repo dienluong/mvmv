@@ -14,7 +14,7 @@ function createMover() {
      * @param filesList {String[]} List of files to rename
      * @param newFilesList {String[]} List of new names
      * @param [location] {String} Path of the source files on filesystem
-     * @param [callback] {Function} Function to be invoked after each rename attempt
+     * @param [callback] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
      * @return {Number[]} Index of names for which rename failed;
      * @throws {TypeError}
      */
@@ -45,7 +45,7 @@ function createMover() {
             }
 
             if (typeof callback === 'function') {
-                callback(error, oldName, newName);
+                callback(error, oldName, newName, idx);
             }
         });
 
