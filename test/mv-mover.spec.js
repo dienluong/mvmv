@@ -16,14 +16,14 @@ const TEST_PATH     = path.join('test', 'test-data');
 describe('mv-mover', function () {
     describe('commit()', function () {
         it('should rename *.txt files to *.doc on file system, and return []', function () {
-            let srcPattern  = path.join(TEST_PATH, '*.txt');
-            let dstPattern  = path.join(TEST_PATH, '*.doc');
-            let filesList   = this.myParser.resolve(srcPattern);
-            let newFilesList = filesList.map(function (name) {
-                return name.replace(/\.txt$/, ".doc");
+            const srcPattern  = path.join(TEST_PATH, '*.txt');
+            const dstPattern  = path.join(TEST_PATH, '*.doc');
+            const filesList   = this.myParser.resolve(srcPattern);
+            const newFilesList = filesList.map(function (name) {
+                return name.replace(/\.txt$/, '.doc');
             });
 
-            let returned = this.myMover.commit(filesList, newFilesList);
+            const returned = this.myMover.commit(filesList, newFilesList);
             // Cross-verification with globby, parser.resolve and fs.existsSync
             expect(globby.sync(srcPattern)).to.be.empty;
             expect(this.myParser.resolve(srcPattern)).to.be.empty;
@@ -54,18 +54,18 @@ describe('mv-mover', function () {
                                 789,
                                 'success.new'];
 
-            this.myCallback = function (err, old, nyou) {
+            this.myCallback = function (err, old, nyou, idx) {
                 if (err) {
-                    console.log(`From callback: ${err}`);
+                    console.log(`From callback: Rename #${idx} ${err}`);
                 }
                 else {
-                    console.log(`From callback: Renamed ${old} to ${nyou}`);
+                    console.log(`From callback: Rename #${idx} ${old} to ${nyou}`);
                 }
             };
 
             sinon.spy(this, 'myCallback');
 
-            let returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
+            const returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
             // Renames failed: [2, 3, 4, 5, 7]
             expect(returned.length).to.eql(5);
             expect(returned).to.have.members([2, 3, 4, 5, 7]);
@@ -90,9 +90,38 @@ describe('mv-mover', function () {
         });
 
         it('should handle gracefully non-function passed as callback', function () {
-            // TODO...
-            let filesList    = this.myParser.resolve(path.join(TEST_PATH, '*'));
-            let newFilesList = []
+            let filesList    = this.myParser.resolve(path.join(TEST_PATH, '*.up^'));
+            expect(filesList.length).to.eql(2);
+            let newFilesList = [];
+            for (let i = filesList.length - 1; i >= 0; i -= 1) {
+                newFilesList.unshift(`${i}.up`);
+            }
+
+            // A Number as the callback
+            let returned = this.myMover.commit(filesList, newFilesList, null, 123);
+            expect(returned).to.be.empty;
+
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '*.tm$'));
+            expect(filesList.length).to.eql(2);
+            newFilesList.length = 0;
+            for (let i = filesList.length - 1; i >= 0; i -= 1) {
+                newFilesList.unshift(`${i}.tm`);
+            }
+
+            // A String as the callback
+            returned = this.myMover.commit(filesList, newFilesList, null, '123');
+            expect(returned).to.be.empty;
+
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '*.z..'));
+            expect(filesList.length).to.eql(2);
+            newFilesList.length = 0;
+            for (let i = filesList.length - 1; i >= 0; i -= 1) {
+                newFilesList.unshift(`${i}.z`);
+            }
+
+            // An array as the callback
+            returned = this.myMover.commit(filesList, newFilesList, null, [123]);
+            expect(returned).to.be.empty;
         });
 
 
@@ -111,7 +140,7 @@ describe('mv-mover', function () {
                                 789,
                                 'success.new'];
 
-            let returned = this.myMover.commit(filesList, newFilesList);
+            const returned = this.myMover.commit(filesList, newFilesList);
             // Renames failed:
             // [2] because original file does not exist
             // [3] because original file name is not a string (e.g. number 123)
