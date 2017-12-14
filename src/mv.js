@@ -1,47 +1,51 @@
 'use strict';
 
-var DefaultParser = require('../src/mv-parser');
-var DefaultMover  = require('../src/mv-mover');
+const DefaultParser = require('../src/mv-parser');
+const DefaultRenamer = require('../src/mv-renamer');
+const DefaultMover  = require('../src/mv-mover');
 
 module.exports.create = function createMv() {
-    var parser = DefaultParser.create();
-    var mover  = DefaultMover.create();
-    var fileList = [];
-    const srcPattern = process.argv[2];
-    const dstPattern = process.argv[3];
+    let _parser = null;
+    let _renamer = null;
+    let _mover  = null;
+    let _srcPattern = null;
+    let _dstPattern = null;
+    let _initialized = false;
+
+    function init(p, r, m, src, dst) {
+        _srcPattern = src || process.argv[2];
+        _dstPattern = dst || process.argv[3];
+        _parser = p || DefaultParser.create();
+        _renamer = r || DefaultRenamer.create();
+        _mover = m || DefaultMover.create();
+        _initialized = true;
+    }
+
+    function run() {
+        let filenames;
+        let newFilenames;
+        if (!_initialized) {
+            throw new Error('Error: Object not initialized!');
+        }
+        filenames = _fetchFilenames(_srcPattern);
+        newFilenames = _buildNewFilenames(filenames, _srcPattern, _dstPattern);
+        _renameFiles(filenames, newFilenames);
+    }
+
+    function _fetchFilenames(glob) {
+        return _parser.resolve(glob);
+    }
+
+    function _buildNewFilenames(filenames, srcGlob, dstGlob) {
+        return _renamer.computeName(filenames, srcGlob, dstGlob);
+    }
+
+    function _renameFiles(oldFilenames, newFilenames) {
+        _mover.commit(oldFilenames, newFilenames);
+    }
 
     return {
-        run: function () {
-            "use strict";
-            fileList = parseArg(srcPattern);
-            moveFile(fileList, dstPattern);
-
-        },
-
-        init: function(p, m) {
-            "use strict";
-            parser = p || parser;
-            mover = m || mover;
-        }
+        run: run,
+        init: init
     };
-
-    function parseArg (arg) {
-        try {
-            return parser.resolve(arg);
-        }
-        catch(e) {
-            console.log('Error parsing arguments: ' + e);
-            throw e;
-        }
-    }
-
-    function moveFile (list, pattern) {
-        try {
-            mover.move(list, pattern);
-        }
-        catch(e) {
-            console.log('Error moving items: ' + e);
-            throw e;
-        }
-    }
 };
