@@ -191,14 +191,12 @@ describe('mv-mover', function () {
             this.myMover.commit.restore();
         });
 
-
         /* ----------------------------------------------------- */
         /* ------------ before() and after() section ----------- */
         /* ----------------------------------------------------- */
         before(function () {
             this.myMover    = mover.create();
             this.myParser   = parser.create();
-
         });
 
         beforeEach(function () {
