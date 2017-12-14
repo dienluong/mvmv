@@ -27,9 +27,9 @@ describe('When receiving multiple names', function () {
 
 describe('When array of names is empty', function () {
     describe('capture()', function () {
-        it('should return empty array', function () {
+        it('should return null', function () {
             let result = capture([], '*.ex?');
-            expect(result).to.be.empty;
+            expect(result).to.be.null;
         });
     });
 });

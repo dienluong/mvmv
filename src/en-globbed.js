@@ -62,20 +62,16 @@ function deconstruct(glob, options) {
  * @method capture
  * @param names {String[]} List of names
  * @param glob {String} The glob pattern to be applied to names
- * @return {captureGroupsCollection[]} An array of captureGroupsCollection objects. Returns null if invalid parameters.
+ * @return {captureGroupsCollection[]} An array of captureGroupsCollection objects. Returns null if invalid parameters or names list is empty.
  */
 function capture(names, glob) {
     "use strict";
-    if (!Array.isArray(names)) {
+    if (!Array.isArray(names) || !names.length) {
         return null;
     }
 
     if ((typeof glob !== 'string') || !glob) {
         return null;
-    }
-
-    if (!names.length) {
-        return [];
     }
 
     // Transform glob pattern to equivalent regex
