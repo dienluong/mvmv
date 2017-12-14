@@ -203,7 +203,6 @@ describe('mv-mover', function () {
             const g         = new FilenameGen();
             const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
             let folderContent = {};
-            this.fullnamesMap = new Map();
 
             // Build a Map tracking all files in the mock filesystem (created w/ mock-fs).
             // Key is the file extension and value is an array of the filenames with that extension
@@ -211,8 +210,6 @@ describe('mv-mover', function () {
             for (let i = extensions.length - 1; i >= 0; i -= 1) {
                 const name1 = g.generate(extensions[i]);
                 const name2 = g.generate(extensions[i]);
-                let names = [ path.join(TEST_PATH, name1), path.join(TEST_PATH, name2) ];
-                this.fullnamesMap.set(extensions[i], names);
                 Object.defineProperty(folderContent, name1, {
                     enumerable: true,
                     value: 'created by mock-fs'
@@ -227,12 +224,6 @@ describe('mv-mover', function () {
             const specialNames = [ '^onecaret.up^', '^^onecaret.up^', '^twocarets.hi^^', '^^twocarets.hi^^',
                 '$onedollar.tm$', '$$onedollar.tm$', '$twodollars.js$$', '$$twodollars.js$$',
                 'dotnames1.a.b', 'dotnames2.a.b', 'dotdotnames1.z..', 'dotdotnames2.z..'];
-            this.fullnamesMap.set('up^', [ path.join(TEST_PATH, specialNames[0]), path.join(TEST_PATH, specialNames[1]) ]);
-            this.fullnamesMap.set('hi^^', [ path.join(TEST_PATH, specialNames[2]), path.join(TEST_PATH, specialNames[3]) ]);
-            this.fullnamesMap.set('tm$', [ path.join(TEST_PATH, specialNames[4]), path.join(TEST_PATH, specialNames[5]) ]);
-            this.fullnamesMap.set('js$$', [ path.join(TEST_PATH, specialNames[6]), path.join(TEST_PATH, specialNames[7]) ]);
-            this.fullnamesMap.set('a.b', [ path.join(TEST_PATH, specialNames[8]), path.join(TEST_PATH, specialNames[9]) ]);
-            this.fullnamesMap.set('z..', [ path.join(TEST_PATH, specialNames[10]), path.join(TEST_PATH, specialNames[11]) ]);
             specialNames.forEach(function (name) {
                 Object.defineProperty(folderContent, name, {
                     enumerable: true,
@@ -249,6 +240,5 @@ describe('mv-mover', function () {
         afterEach(function () {
             mockFs.restore();
         });
-
     });
 });
