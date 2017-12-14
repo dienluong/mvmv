@@ -24,11 +24,11 @@ function createRenamer() {
         else {
             if (Array.isArray(names)) {
                 if (!names.length) {
-                    return [];
+                    throw new TypeError('Invalid names list. Array must be non-empty.');
                 }
             } // names is not an array, nor a string
             else {
-                throw new TypeError('Invalid type for names!  Must be a string or an Array of string');
+                throw new TypeError('Invalid type for names! Must be a string or an Array of string');
             }
         }
 

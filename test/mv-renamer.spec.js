@@ -21,14 +21,14 @@ describe('When parameters of invalid type are passed', function () {
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid type for names!  Must be a string or an Array of string');
+                .and.have.property('message', 'Invalid type for names! Must be a string or an Array of string');
             }
             try {
                 this.myRenamer.computeName(1, '*.txt', '*.out');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid type for names!  Must be a string or an Array of string');
+                .and.have.property('message', 'Invalid type for names! Must be a string or an Array of string');
             }
             try {
                 this.myRenamer.computeName(['bob-smith'], [], '???-*');
@@ -65,7 +65,13 @@ describe('When parameters of invalid type are passed', function () {
                 expect(e).to.be.instanceof(Error)
                 .and.have.property('message', 'Invalid type for glob pattern! Must be a non-empty string.');
             }
-
+            try {
+                this.myRenamer.computeName([], '*', '*');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid names list. Array must be non-empty.');
+            }
             expect(this.myRenamer.computeName.alwaysThrew('TypeError')).to.be.true;
         });
     });
