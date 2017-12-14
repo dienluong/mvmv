@@ -12,7 +12,7 @@ function createRenamer() {
      * @param srcGlob {String} Glob pattern used to match the original names
      * @param dstGlob {String} Glob pattern used to contruct new names
      * @return {String[]} List of new names
-     * @throws {TypeError} A TypeError object
+     * @throws {Error} An Error object
      */
     function computeName(names, srcGlob, dstGlob) {
         if ((typeof srcGlob !== 'string' || !srcGlob) || (typeof dstGlob !== 'string' || !dstGlob)) {
@@ -28,14 +28,22 @@ function createRenamer() {
                 }
             } // names is not an array, nor a string
             else {
-                throw new TypeError('Invalid type for names! Must be a string or an Array of string');
+                throw new TypeError('Invalid type for names! Must be a string or an Array of string.');
             }
         }
 
-        // extract matches for each wildcard (and literal) part of the glob
+        // extract matches for each wildcard (and literal) parts of the glob
         let srcCaptureGroupsArray = englobbed.capture(names, srcGlob);
+        if (!srcCaptureGroupsArray) {
+            throw new Error('Unexpected error while extracting glob matches.');
+        }
+
         // Deconstruct the glob into literal and wildcard parts
         let dstGlobParts = englobbed.deconstruct(dstGlob, {collapse: false});
+        if (!dstGlobParts.length) {
+            throw new Error('Unexpected error while parsing glob.');
+        }
+
         let newNames = names.map(function buildNewName(name, iName) {
             // if source glob can't match the name, then can't construct new name
             if (!srcCaptureGroupsArray[iName].hasMatch()) {
