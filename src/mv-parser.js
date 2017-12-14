@@ -17,6 +17,7 @@ function createParser () {
          * @method resolve
          * @param pattern {String} glob pattern
          * @returns {String[]} Files/paths matching the provided pattern
+         * @throws {Error} An Error object
          */
         resolve: function (pattern) {
             //returns array of filenames (string) matching the pattern, or empty array if no match
