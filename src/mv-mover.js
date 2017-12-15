@@ -14,7 +14,7 @@ function createMover() {
      * @param [location] {String} Path of the source files on filesystem
      * @param [callback] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
      * @return {Number[]} Index of names for which rename failed;
-     * @throws {TypeError}
+     * @throws {Error} An Error object
      */
     function commit(filesList, newFilesList, location, callback) {
         let failedIndexes = [];
