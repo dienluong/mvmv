@@ -13,11 +13,11 @@ function createMover() {
      * @param newFilesList {String[]} List of new names
      * @param [location] {String} Path of the source files on filesystem
      * @param [callback] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
-     * @return {Number[]} Index of names for which rename failed;
+     * @return {Number[]} Index of names for which rename succeeded;
      * @throws {Error} An Error object
      */
     function commit(filesList, newFilesList, location, callback) {
-        let failedIndexes = [];
+        let successIndexes = [];
         if (!Array.isArray(filesList) || !Array.isArray(newFilesList)) {
             throw new TypeError('Expects arrays of old and new names.');
         }
@@ -35,10 +35,11 @@ function createMover() {
                 newName = newFilesList[idx];
                 fs.renameSync(oldName, newName);
                 // console.log('Renaming: ' + `${oldName} to ${newName}`);
+
+                successIndexes.push(idx);
             }
             catch (e) {
                 //TODO: return a Map where key=idx, value=error?
-                failedIndexes.push(idx);
                 error = new Error('Failed rename commit. ' + e.message);
             }
 
@@ -47,7 +48,7 @@ function createMover() {
             }
         });
 
-        return failedIndexes;
+        return successIndexes;
     }
 }
 

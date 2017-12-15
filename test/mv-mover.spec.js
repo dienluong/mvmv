@@ -15,7 +15,7 @@ const TEST_PATH     = path.join('test', 'test-data');
 
 describe('mv-mover', function () {
     describe('commit()', function () {
-        it('should rename *.txt files to *.doc on file system, and return []', function () {
+        it('should rename *.txt files to *.doc on file system, and return [...].length = 2', function () {
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.doc');
             const filesList   = this.myParser.resolve(srcPattern);
@@ -36,7 +36,8 @@ describe('mv-mover', function () {
             filesList.forEach(function (name) {
                 expect(fs.existsSync(name)).to.be.false;
             });
-            expect(returned).to.be.empty;
+            expect(returned.length).to.eql(2);
+            expect(returned).to.have.members([0, 1]);
         });
 
         it('should invoke the callback if one is provided', function () {
@@ -66,10 +67,11 @@ describe('mv-mover', function () {
             sinon.spy(this, 'myCallback');
 
             const returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
-            // Renames failed: [2, 3, 4, 5, 7]
-            expect(returned.length).to.eql(5);
-            expect(returned).to.have.members([2, 3, 4, 5, 7]);
+            // Renames success: [0, 1, 6]
+            expect(returned.length).to.eql(3);
+            expect(returned).to.have.members([0, 1, 6]);
             expect(this.myCallback.callCount).to.eql(8);
+            // Renames failed: [2, 3, 4, 5, 7]
             this.myCallback.args.forEach(function (arg, idx) {
                 switch (idx) {
                     case 2:
@@ -91,15 +93,16 @@ describe('mv-mover', function () {
 
         it('should handle gracefully non-function passed as callback', function () {
             let filesList    = this.myParser.resolve(path.join(TEST_PATH, '*.up^'));
-            expect(filesList.length).to.eql(2);
             let newFilesList = [];
+
+            expect(filesList.length).to.eql(2);
             for (let i = filesList.length - 1; i >= 0; i -= 1) {
                 newFilesList.unshift(`${i}.up`);
             }
 
             // A Number as the callback
             let returned = this.myMover.commit(filesList, newFilesList, null, 123);
-            expect(returned).to.be.empty;
+            expect(returned).to.have.members([0, 1]);
 
             filesList = this.myParser.resolve(path.join(TEST_PATH, '*.tm$'));
             expect(filesList.length).to.eql(2);
@@ -110,7 +113,7 @@ describe('mv-mover', function () {
 
             // A String as the callback
             returned = this.myMover.commit(filesList, newFilesList, null, '123');
-            expect(returned).to.be.empty;
+            expect(returned).to.have.members([0, 1]);
 
             filesList = this.myParser.resolve(path.join(TEST_PATH, '*.z..'));
             expect(filesList.length).to.eql(2);
@@ -121,11 +124,11 @@ describe('mv-mover', function () {
 
             // An array as the callback
             returned = this.myMover.commit(filesList, newFilesList, null, [123]);
-            expect(returned).to.be.empty;
+            expect(returned).to.have.members([0, 1]);
         });
 
 
-        it('should return an [] of indexes of names for which rename failed', function () {
+        it('should return an [] of indexes of names for which rename succeeded', function () {
             let filesList  = this.myParser.resolve(path.join(TEST_PATH, '*.js'));
             filesList.push('non-existing.file');
             filesList.push(123);
@@ -141,14 +144,17 @@ describe('mv-mover', function () {
                                 'success.new'];
 
             const returned = this.myMover.commit(filesList, newFilesList);
-            // Renames failed:
-            // [2] because original file does not exist
-            // [3] because original file name is not a string (e.g. number 123)
-            // [4] because new filename is a path without filename,
-            // [5] because new file name is not a string (e.g. number 789)
-            // [7] because no corresponding new name in array
-            expect(returned).to.have.members([2, 3, 4, 5, 7]);
-            expect(returned.length).to.eql(5);
+            // Renames:
+            // [0] success
+            // [1] success
+            // [2] failed because original file does not exist
+            // [3] failed because original file name is not a string (e.g. number 123)
+            // [4] failed because new filename is a path without filename,
+            // [5] failed because new file name is not a string (e.g. number 789)
+            // [6] success
+            // [7] failed because no corresponding new name in array
+            expect(returned).to.have.members([0, 1, 6]);
+            expect(returned.length).to.eql(3);
         });
 
         it('should throw a TypeError if invalid argument type passed', function () {
