@@ -4,33 +4,24 @@ const DefaultParser = require('../src/mv-parser');
 const DefaultRenamer = require('../src/mv-renamer');
 const DefaultMover  = require('../src/mv-mover');
 
-module.exports.create = function createMv() {
-    let _parser = null;
-    let _renamer = null;
-    let _mover  = null;
-    let _srcPattern = null;
-    let _dstPattern = null;
-    let _initialized = false;
-
-    function init(p, r, m, src, dst) {
-        _srcPattern = src || process.argv[2];
-        _dstPattern = dst || process.argv[3];
-        _parser = p || DefaultParser.create();
-        _renamer = r || DefaultRenamer.create();
-        _mover = m || DefaultMover.create();
-        _initialized = true;
-    }
-
-    function run() {
-        let filenames;
-        let newFilenames;
-        if (!_initialized) {
-            throw new Error('Error: Object not initialized!');
-        }
-        filenames = _fetchFilenames(_srcPattern);
-        newFilenames = _buildNewFilenames(filenames, _srcPattern, _dstPattern);
-        _renameFiles(filenames, newFilenames);
-    }
+/**
+ * Creates a Mv object that renames files on file system using glob patterns.
+ * @param parser {Object} Object with a resolve(glob) method where:
+ *                                  'glob' is a string.
+ * @param renamer {Object} Object with a computeName(names, srcGlob, dstGlob) method where:
+ *                                  'names': array of strings
+ *                                  'srcGlob': string
+ *                                  'dstGlob': string
+ * @param mover {Object} Object with a commit(oldNames, newNames, callback) method where:
+ *                                  'oldNames': array of strings
+ *                                  'newNames': array of strings
+ *                                  'callback': function
+ * @return {Object} An Mv object
+ */
+function createMv(parser, renamer, mover) {
+    let _parser     = null;
+    let _renamer    = null;
+    let _mover      = null;
 
     function _fetchFilenames(glob) {
         return _parser.resolve(glob);
@@ -40,12 +31,54 @@ module.exports.create = function createMv() {
         return _renamer.computeName(filenames, srcGlob, dstGlob);
     }
 
-    function _renameFiles(oldFilenames, newFilenames) {
-        _mover.commit(oldFilenames, newFilenames);
+    function _renameFiles(oldFilenames, newFilenames, callback) {
+        callback = typeof callback === 'function' ? callback : null;
+        return _mover.commit(oldFilenames, newFilenames, callback);
     }
 
+    function init(p, r, m) {
+        _parser = p || _parser;
+        _renamer = r || _renamer;
+        _mover = m || _mover;
+    }
+
+    /**
+     * Performs files rename on file system.
+     * @param src {String} Glob pattern specifying files to rename
+     * @param dst {String} Glob pattern characterizing the new names
+     * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName.
+     * @return {Number} Number of successful renames
+     * @throws {Error} An Error object
+     */
+    function exec(src, dst, cb) {
+        let filenames = [];
+        let newFilenames = [];
+        let successList = [];
+
+        if (typeof src !== 'string' || typeof dst !== 'string' || !src.length || !dst.length) {
+            throw new TypeError("Invalid arguments. Glob patterns must be non-empty strings.");
+        }
+
+        let srcPattern = src;
+        let dstPattern = dst;
+
+        filenames = _fetchFilenames(srcPattern);
+        if (filenames.length) {
+            newFilenames = _buildNewFilenames(filenames, srcPattern, dstPattern);
+            successList = _renameFiles(filenames, newFilenames, cb);
+        }
+
+        return successList.length;
+    }
+
+    _parser = parser || DefaultParser.create();
+    _renamer = renamer || DefaultRenamer.create();
+    _mover = mover || DefaultMover.create();
+
     return {
-        run: run,
+        exec: exec,
         init: init
     };
-};
+}
+
+module.exports.create = createMv;
