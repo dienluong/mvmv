@@ -6,13 +6,13 @@ const DefaultMover  = require('../src/mv-mover');
 
 /**
  * Creates a Mv object that renames files on file system using glob patterns.
- * @param parser {Object} Object with a resolve(glob) method where:
+ * @param [parser] {Object} Object with a resolve(glob) method where:
  *                                  'glob' is a string.
- * @param renamer {Object} Object with a computeName(names, srcGlob, dstGlob) method where:
+ * @param [renamer] {Object} Object with a computeName(names, srcGlob, dstGlob) method where:
  *                                  'names': array of strings
  *                                  'srcGlob': string
  *                                  'dstGlob': string
- * @param mover {Object} Object with a commit(oldNames, newNames, callback) method where:
+ * @param [mover] {Object} Object with a commit(oldNames, newNames, callback) method where:
  *                                  'oldNames': array of strings
  *                                  'newNames': array of strings
  *                                  'callback': function

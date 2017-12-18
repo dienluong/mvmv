@@ -54,7 +54,7 @@ describe('mv', function () {
             it('should use defaults', function () {
                 const srcGlob = path.join(TEST_PATH, '*doc');
                 const dstGlob = path.join(TEST_PATH, '*pdf');
-                let result;
+                let result = null;
                 expect(() => { result = this.myMv.exec(srcGlob, dstGlob); }).to.not.throw();
                 expect(result).to.eql(0);
             });
