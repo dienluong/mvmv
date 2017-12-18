@@ -9,10 +9,10 @@ const expect        = require('chai').expect;
 const sinon         = require('sinon');
 const globby        = require('globby');
 
-let Mv      = require('../src/mv');
-let Parser  = require('../src/mv-parser');
-let Renamer = require('../src/mv-renamer');
-let Mover   = require('../src/mv-mover');
+const Mv      = require('../src/mv');
+const Parser  = require('../src/mv-parser');
+const Renamer = require('../src/mv-renamer');
+const Mover   = require('../src/mv-mover');
 
 describe('mv', function () {
     describe('exec()', function () {
@@ -54,16 +54,18 @@ describe('mv', function () {
             it('should use defaults', function () {
                 const srcGlob = path.join(TEST_PATH, '*doc');
                 const dstGlob = path.join(TEST_PATH, '*pdf');
-                expect(() => this.myMv.exec(srcGlob, dstGlob)).to.not.throw();
+                let result;
+                expect(() => { result = this.myMv.exec(srcGlob, dstGlob); }).to.not.throw();
+                expect(result).to.eql(0);
             });
 
             it('should use objects provided to Mv.create()', function () {
                 const srcGlob = path.join(TEST_PATH, '*txt');
                 const dstGlob = path.join(TEST_PATH, '*TXT');
-                const myParser   = Parser.create();
-                const myRenamer  = Renamer.create();
-                const myMover    = Mover.create();
-                const myMv = Mv.create(myParser, myRenamer, myMover);
+                const myParser  = Parser.create();
+                const myRenamer = Renamer.create();
+                const myMover   = Mover.create();
+                const myMv      = Mv.create(myParser, myRenamer, myMover);
 
                 sinon.spy(myParser, 'resolve');
                 sinon.spy(myRenamer, 'computeName');
