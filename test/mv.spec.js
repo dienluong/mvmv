@@ -102,22 +102,6 @@ describe('mv', function () {
                 expect(globby.sync(dstGlob)).to.have.members(dstFiles);
                 expect(result).to.eql(2);
             });
-
-
-            it.skip('should not change the file system, if --simulate/-s option specified', function () {
-                const srcGlob = path.join(TEST_PATH, '*js$$');
-                const dstGlob = path.join(TEST_PATH, '*hi^^');
-                const srcFiles = globby.sync(srcGlob);
-                const allFiles = globby.sync('*');
-
-                // process.argv = [process.execPath, 'ms.js', '--simulate', srcGlob, dstGlob];
-
-                this.myMv.exec(srcGlob, dstGlob);
-
-                // Asserts that original filenames no longer present after rename
-                expect(globby.sync(srcGlob)).to.have.members(srcFiles);
-                expect(globby.sync('*')).to.have.members(allFiles);
-            });
         });
 
         /* ----------------------------------------------------- */
