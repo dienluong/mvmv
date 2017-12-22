@@ -54,9 +54,9 @@ describe('mv', function () {
             it('should use defaults', function () {
                 const srcGlob = path.join(TEST_PATH, '*doc');
                 const dstGlob = path.join(TEST_PATH, '*pdf');
-                let result = null;
+                let result;
                 expect(() => { result = this.myMv.exec(srcGlob, dstGlob); }).to.not.throw();
-                expect(result).to.eql(0);
+                expect(result).to.be.null;
             });
 
             it('should use objects provided to Mv.create()', function () {
@@ -101,6 +101,19 @@ describe('mv', function () {
                 expect(globby.sync(dstGlob).length).to.eql(4);
                 expect(globby.sync(dstGlob)).to.have.members(dstFiles);
                 expect(result).to.eql(2);
+            });
+
+            it('should return null if no source file found, given the source glob', function () {
+                const srcGlob = path.join(TEST_PATH, '*.missing');
+                const dstGlob = path.join(TEST_PATH, '*.txt');
+                const dstFiles = globby.sync(dstGlob);
+
+                const result = this.myMv.exec(srcGlob, dstGlob);
+
+                expect(result).to.be.null;
+                // Asserts that original filenames remain after operation
+                expect(globby.sync(srcGlob).length).to.eql(0);
+                expect(globby.sync(dstGlob)).to.have.members(dstFiles);
             });
         });
 

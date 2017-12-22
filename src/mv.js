@@ -47,7 +47,7 @@ function createMv(parser, renamer, mover) {
      * @param src {String} Glob pattern specifying files to rename
      * @param dst {String} Glob pattern characterizing the new names
      * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName.
-     * @return {Number} Number of successful renames
+     * @return {Number | null} Number of successful renames. null if no source file found.
      * @throws {Error} An Error object
      */
     function exec(src, dst, cb) {
@@ -68,7 +68,7 @@ function createMv(parser, renamer, mover) {
             successList = _renameFiles(filenames, newFilenames, cb);
         }
 
-        return successList.length;
+        return successList.length || null;
     }
 
     _parser = parser || DefaultParser.create();
