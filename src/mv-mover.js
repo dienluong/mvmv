@@ -1,6 +1,6 @@
 'use strict';
 // const globule = require('globule');
-const fs        = require('fs');
+const fs = require('fs');
 
 function createMover() {
     return {
@@ -33,9 +33,8 @@ function createMover() {
             let newName = '';
             try {
                 newName = newFilesList[idx];
+                //TODO: prevent overwriting of existing files. (Use fs.exists()?)
                 fs.renameSync(oldName, newName);
-                // console.log('Renaming: ' + `${oldName} to ${newName}`);
-
                 successIndexes.push(idx);
             }
             catch (e) {
