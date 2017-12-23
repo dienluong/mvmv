@@ -54,6 +54,7 @@ function createMv(parser, renamer, mover) {
         let filenames = [];
         let newFilenames = [];
         let successList = [];
+        let returnVal;
 
         if (typeof src !== 'string' || typeof dst !== 'string' || !src.length || !dst.length) {
             throw new TypeError("Invalid arguments. Glob patterns must be non-empty strings.");
@@ -66,9 +67,13 @@ function createMv(parser, renamer, mover) {
         if (filenames.length) {
             newFilenames = _buildNewFilenames(filenames, srcPattern, dstPattern);
             successList = _renameFiles(filenames, newFilenames, cb);
+            returnVal = successList.length;
+        }
+        else {
+            returnVal = null;
         }
 
-        return successList.length || null;
+        return returnVal;
     }
 
     _parser = parser || DefaultParser.create();
