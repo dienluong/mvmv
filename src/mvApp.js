@@ -6,6 +6,8 @@ const Mv            = require('../src/mv');
 const commandLine   = require('commander');
 const defaultMover  = require('../src/mv-mover').create();
 
+let currentMode = '';
+
 const interactiveMover = {
     commit: function commit(src, dst) {
         let successList = [];
@@ -37,10 +39,10 @@ const simulateMover = {
 
         src.forEach(function (oldName, idx) {
             if (fs.existsSync(dst[idx])) {
-                console.log(`   Unable to rename ${oldName} to ${dst[idx]}: ${dst[idx]} already exists.`);
+                printWithMode(`    Unable to rename ${oldName}: \x1b[37;1m${dst[idx]}\x1b[0m already exists.`);
             }
             else {
-                console.log(`   Renaming ${oldName} to ${dst[idx]}`);
+                printWithMode(`    Renaming \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
                 successList.push(idx);
             }
         });
@@ -52,12 +54,22 @@ const simulateMover = {
 const verboseMover = {
     commit: function commit(src, dst) {
         src.forEach(function (oldName, idx) {
-            console.log(`   Renaming ${oldName} to ${dst[idx]}`);
+            printWithMode(`    Renaming \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
         });
 
         return defaultMover.commit(src, dst);
     }
 };
+
+function printWithMode(message) {
+    let mode = '';
+    if (currentMode) {
+        mode = `[${currentMode}] `;
+    }
+    message = mode + message;
+
+    console.log(message);
+}
 
 function run () {
     let myMover = defaultMover;
@@ -77,25 +89,25 @@ function run () {
         return;
     }
 
-    const srcGlob = commandLine.args[0];
-    const dstGlob = commandLine.args[1];
-    console.log('\x1b[36mSource:\x1b[0m %s  \x1b[36mDestination\x1b[0m: %s', srcGlob, dstGlob);
-
 // console.log('commandLine.simulate: ' + commandLine.simulate);
 // console.log('commandLine.verbose: ' + commandLine.verbose);
 // console.log('commandLine.interactive: ' + commandLine.interactive);
     if (commandLine.simulate) {
-console.log('Simulate...');
+        currentMode = 'Simulate';
         myMover = simulateMover;
     }
     else if (commandLine.verbose) {
-console.log('Verbose...');
+        currentMode = 'Verbose';
         myMover = verboseMover;
     }
     else if (commandLine.interactive) {
-console.log('Interactive...');
+        currentMode = 'Interactive';
         myMover = interactiveMover;
     }
+
+    const srcGlob = commandLine.args[0];
+    const dstGlob = commandLine.args[1];
+    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
 
     const myMvApp = Mv.create(null, null, myMover);
     try {
@@ -106,10 +118,10 @@ console.log('Interactive...');
     }
 
     if (result === null) {
-        console.log(`File not found.`);
+        printWithMode(`File not found.`);
     }
     else {
-        console.log(`\x1b[36mRenamed ${result} file(s)\x1b[0m`);
+        printWithMode(`\x1b[36mRenamed ${result} file(s)\x1b[0m`);
     }
 }
 

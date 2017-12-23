@@ -19,7 +19,7 @@ function reloadApp() {
 }
 
 describe('myApp', function () {
-    describe.only('when arguments is not correct', function () {
+    describe('when arguments is not correct', function () {
         it('should display usage help info', function () {
             // Temporarily suppress output to stdout
             // let stdoutWriteStub = sinon.stub(process.stdout, 'write');
@@ -75,52 +75,59 @@ describe('myApp', function () {
     });
 
     describe('when receiving valid arguments', function () {
-        it.only('should read the glob patterns from the command line', function () {
-            let srcGlob = path.join(TEST_PATH, '*.doc');
-            let dstGlob = path.join(TEST_PATH, '*.pdf');
+        it('should read the glob patterns from the command line', function () {
             let starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
-            expect(globby.sync(srcGlob).length).to.eql(0);
-            expect(globby.sync(dstGlob).length).to.eql(0);
-
-            // Simulate command: node mvApp.js <src> <dst>
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
-            expect(globby.sync(starGlob)).to.have.members(allFiles);
-
-            srcGlob = path.join(TEST_PATH, '*.txt');
-            dstGlob = path.join(TEST_PATH, '*TXT');
+            let srcGlob = path.join(TEST_PATH, '*.txt');
+            let dstGlob = path.join(TEST_PATH, '*TXT');
             expect(globby.sync(srcGlob).length).to.eql(2);
             expect(globby.sync(dstGlob).length).to.eql(2);
 
+            // Simulate command: node mvApp.js <src> <dst>
             process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
             mvApp.run();
             expect(globby.sync(srcGlob).length).to.eql(0);
             expect(globby.sync(dstGlob).length).to.eql(4);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
+            expect(globby.sync(starGlob)).to.not.have.members(allFiles);
         });
 
-        it.only('should display message if no source file found', function () {
+        it('should display message if no source file found', function () {
+            let starGlob = path.join(TEST_PATH, '*');
+            let allFiles = globby.sync(starGlob);
             let srcGlob = path.join(TEST_PATH, '*.doc');
             let dstGlob = path.join(TEST_PATH, '*.pdf');
+            expect(globby.sync(srcGlob).length).to.eql(0);
+            expect(globby.sync(dstGlob).length).to.eql(0);
 
             sinon.spy(console, "log");
             process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
             mvApp.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
             console.log.restore();
         });
 
         it('should display operations in --verbose mode', function () {
-            let srcGlob = path.join(TEST_PATH, '*');
-            let dstGlob = path.join(TEST_PATH, '*.old');
+            let srcGlob = path.join(TEST_PATH, 'dotnames2.a.b');
+            let dstGlob = path.join(TEST_PATH, 'dotnames2.a.b.old');
             let starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
+            let srcFiles = globby.sync(srcGlob);
+            let dstFiles = globby.sync(dstGlob);
 
+            expect(srcFiles.length).to.eql(1);
+            expect(dstFiles.length).to.eql(0);
+            sinon.spy(console, "log");
             process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstGlob];
             mvApp.run();
-            expect(globby.sync(starGlob)).to.not.be.members(allFiles);
+            // Verify that verbose mode printout was performed...
+            expect(console.log.withArgs(`[Verbose]     Renaming \x1b[37;1m${srcGlob}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
+            expect(globby.sync(srcGlob)).to.be.empty;
+            expect(globby.sync(dstGlob).length).to.eql(1);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
+            expect(globby.sync(starGlob)).to.not.have.members(allFiles);
+            console.log.restore();
         });
 
         it('should not change the file system in --simulate mode', function () {
@@ -131,6 +138,8 @@ describe('myApp', function () {
 
             process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
             mvApp.run();
+
+            // Case where destination file already exists.
             srcGlob = path.join(TEST_PATH, '^onecaret.up^');
             dstGlob = path.join(TEST_PATH, '^^onecaret.up^');
             process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
@@ -148,7 +157,7 @@ describe('myApp', function () {
 
             process.argv = [process.execPath, 'mvApp.js', '--interactive', srcGlob, dstGlob];
             mvApp.run();
-            expect(globby.sync(starGlob)).to.not.be.members(allFiles);
+            expect(globby.sync(starGlob)).to.not.have.members(allFiles);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
         });
 
