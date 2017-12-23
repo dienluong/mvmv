@@ -157,6 +157,14 @@ describe('mv-mover', function () {
             expect(returned.length).to.eql(3);
         });
 
+        it('should return empty [] if no successful rename completed', function () {
+            let missingFile = [ path.join(TEST_PATH, 'missing.file') ];
+            let newFile = [ path.join(TEST_PATH, 'a.file')];
+
+            const returned = this.myMover.commit(missingFile, newFile);
+            expect(returned).to.be.empty;
+        });
+
         it('should throw a TypeError if invalid argument type passed', function () {
             sinon.spy(this.myMover, 'commit');
 
