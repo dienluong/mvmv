@@ -1,16 +1,20 @@
 'use strict';
 
 let mvApp           = require('../src/mvApp');
+let commander       = require('commander');
+const readlineSync  = require('readline-sync');
 
 const path          = require('path');
 const mockFs        = require('mock-fs');
+const globby        = require('globby');
 const FilenameGen   = require('natural-filename-generator');
-const TEST_PATH     = path.join('test', 'test-data');
 const expect        = require('chai').expect;
 const sinon         = require('sinon');
-const globby        = require('globby');
-let commander       = require('commander');
+const TEST_PATH     = path.join('test', 'test-data');
 
+/**
+ * Resets the 'commander' module by reloading it, both in mvApp module and in this test module.
+ */
 function reloadApp() {
     delete require.cache[ require.resolve('../src/mvApp') ];
     delete require.cache[ require.resolve('commander') ];
@@ -108,23 +112,23 @@ describe('myApp', function () {
             console.log.restore();
         });
 
-        it('should display operations in --verbose mode', function () {
-            let srcGlob = path.join(TEST_PATH, 'dotnames2.a.b');
-            let dstGlob = path.join(TEST_PATH, 'dotnames2.a.b.old');
+        it.only('should display operations in --verbose mode', function () {
+            let srcGlob = path.join(TEST_PATH, 'dotnames?.a.b');
+            let dstGlob = path.join(TEST_PATH, 'dotnames.a.b.old');
             let starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
             let srcFiles = globby.sync(srcGlob);
             let dstFiles = globby.sync(dstGlob);
 
-            expect(srcFiles.length).to.eql(1);
+            expect(srcFiles.length).to.eql(2);
             expect(dstFiles.length).to.eql(0);
             sinon.spy(console, "log");
             process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstGlob];
             mvApp.run();
             // Verify that verbose mode printout was performed...
-            expect(console.log.withArgs(`[Verbose]     Renaming \x1b[37;1m${srcGlob}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
-            expect(globby.sync(srcGlob)).to.be.empty;
-            expect(globby.sync(dstGlob).length).to.eql(1);
+            expect(console.log.withArgs(`[Verbose]     Renaming \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
+            expect(globby.sync(srcGlob)).to.have.members(['dotnames2.a.b']);
+            expect(globby.sync(dstGlob)).to.have.members(['dotnames.a.b.old']);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
             expect(globby.sync(starGlob)).to.not.have.members(allFiles);
             console.log.restore();
@@ -149,16 +153,17 @@ describe('myApp', function () {
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
         });
 
-        it.skip('should ask for confirmation for each operation in --interactive mode', function () {
-            let srcGlob = path.join(TEST_PATH, '*');
+        it('should ask for confirmation for each operation in --interactive mode', function () {
+            let srcGlob = path.join(TEST_PATH, '*.js');
             let dstGlob = path.join(TEST_PATH, '*.old');
-            let starGlob = path.join(TEST_PATH, '*');
-            let allFiles = globby.sync(starGlob);
 
+            // Disable Mocha timeouts for this test
+            this.timeout(0);
+            sinon.spy(readlineSync, 'keyInYN');
             process.argv = [process.execPath, 'mvApp.js', '--interactive', srcGlob, dstGlob];
             mvApp.run();
-            expect(globby.sync(starGlob)).to.not.have.members(allFiles);
-            expect(globby.sync(starGlob).length).to.eql(allFiles.length);
+            expect(readlineSync.keyInYN.calledTwice).to.be.true;
+            readlineSync.keyInYN.restore();
         });
 
         /* ----------------------------------------------------- */
@@ -206,6 +211,7 @@ describe('myApp', function () {
 
         afterEach(function () {
             mockFs.restore();
+            reloadApp();
             process.argv = this.argv;
         });
     });

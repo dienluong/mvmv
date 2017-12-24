@@ -1,9 +1,9 @@
 'use strict';
 
 const fs            = require('fs');
-const readline      = require('readline');
-const Mv            = require('../src/mv');
+const readlineSync  = require('readline-sync');
 const commandLine   = require('commander');
+const Mv            = require('../src/mv');
 const defaultMover  = require('../src/mv-mover').create();
 
 let currentMode = '';
@@ -11,22 +11,20 @@ let currentMode = '';
 const interactiveMover = {
     commit: function commit(src, dst) {
         let successList = [];
-        let readStdin = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
+        // let readStdin = readline.createInterface({
+        //     input: process.stdin,
+        //     output: process.stdout
+        // });
 
-        src.forEach(function (oldName, idx) {
+        src.forEach(function confirmAndCommit(oldName, idx) {
             let newName = dst[idx];
-            readStdin.question(`Sure to rename ${oldName} to ${newName}? (y/n)`, (answer) => {
-                if (answer === 'y') {
-                    if (defaultMover.commit([oldName], [newName]).length) {
-                        successList.push(idx);
-                    }
+            const answerBool = readlineSync.keyInYN(`    Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
+// console.log('readlineSync: ' + answerBool);
+            if (answerBool) {
+                if (defaultMover.commit([oldName], [newName]).length) {
+                    successList.push(idx);
                 }
-
-                readStdin.close();
-            });
+            }
         });
 
         return successList;
@@ -37,7 +35,7 @@ const simulateMover = {
     commit: function commit(src, dst) {
         let successList = [];
 
-        src.forEach(function (oldName, idx) {
+        src.forEach(function simulateCommit(oldName, idx) {
             if (fs.existsSync(dst[idx])) {
                 printWithMode(`    Unable to rename ${oldName}: \x1b[37;1m${dst[idx]}\x1b[0m already exists.`);
             }
@@ -53,7 +51,7 @@ const simulateMover = {
 
 const verboseMover = {
     commit: function commit(src, dst) {
-        src.forEach(function (oldName, idx) {
+        src.forEach(function verboseCommit(oldName, idx) {
             printWithMode(`    Renaming \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
         });
 
