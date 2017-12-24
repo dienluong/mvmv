@@ -4,9 +4,10 @@
   "description": "Shell script for batch renaming of files.",
   "main": "mv.js",
   "dependencies": {
+    "commander": "latest",
     "glob": "^7.1.1",
     "glob-to-regexp": "^0.3.0",
-    "commander": "latest"
+    "readline-sync": "^1.4.7"
   },
   "devDependencies": {
     "chai": "^3.5.0",
