@@ -55,15 +55,6 @@ describe('mv-mover', function () {
                                 789,
                                 'success.new'];
 
-            this.myCallback = function (err, old, nyou, idx) {
-                if (err) {
-                    console.log(`From callback: Rename #${idx} ${err}`);
-                }
-                else {
-                    console.log(`From callback: Rename #${idx} ${old} to ${nyou}`);
-                }
-            };
-
             sinon.spy(this, 'myCallback');
 
             const returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
@@ -99,7 +90,6 @@ describe('mv-mover', function () {
             for (let i = filesList.length - 1; i >= 0; i -= 1) {
                 newFilesList.unshift(`${i}.up`);
             }
-
             // A Number as the callback
             let returned = this.myMover.commit(filesList, newFilesList, null, 123);
             expect(returned).to.have.members([0, 1]);
@@ -110,7 +100,6 @@ describe('mv-mover', function () {
             for (let i = filesList.length - 1; i >= 0; i -= 1) {
                 newFilesList.unshift(`${i}.tm`);
             }
-
             // A String as the callback
             returned = this.myMover.commit(filesList, newFilesList, null, '123');
             expect(returned).to.have.members([0, 1]);
@@ -121,7 +110,6 @@ describe('mv-mover', function () {
             for (let i = filesList.length - 1; i >= 0; i -= 1) {
                 newFilesList.unshift(`${i}.z`);
             }
-
             // An array as the callback
             returned = this.myMover.commit(filesList, newFilesList, null, [123]);
             expect(returned).to.have.members([0, 1]);
@@ -165,6 +153,27 @@ describe('mv-mover', function () {
             expect(returned).to.be.empty;
         });
 
+        it('should not overwrite existing files', function () {
+            let srcGlob = path.join(TEST_PATH, 'dotnames?.a.b');
+            let filesList = globby.sync(srcGlob);
+            let starGlob = path.join(TEST_PATH, '*');
+            let allFiles = globby.sync(starGlob);
+            let newFilename = path.join(TEST_PATH, 'dotnames.a.b.old');
+            let newFilesList = [ newFilename, newFilename ];
+
+            // filesList should contain two files: 'dotnames1.a.b' and 'dotnames2.a.b'
+            expect(filesList.length).to.eql(2);
+            // currently no file having the new filename.
+            expect(globby.sync(newFilename).length).to.eql(0);
+
+            const returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
+            // Expects only one successful rename attempt
+            expect(returned).to.eql([0]);
+            expect(globby.sync(srcGlob)).to.have.members([ path.join(TEST_PATH, 'dotnames2.a.b') ]);
+            expect(globby.sync(newFilename)).to.have.members([ path.join(TEST_PATH, 'dotnames.a.b.old') ]);
+            expect(globby.sync(starGlob).length).to.eql(allFiles.length);
+            expect(globby.sync(starGlob)).to.not.have.members(allFiles);
+        });
         it('should throw a TypeError if invalid argument type passed', function () {
             sinon.spy(this.myMover, 'commit');
 
@@ -211,6 +220,14 @@ describe('mv-mover', function () {
         before(function () {
             this.myMover    = mover.create();
             this.myParser   = parser.create();
+            this.myCallback = function (err, old, nyou, idx) {
+                if (err) {
+                    console.log(`From callback: Rename #${idx} ${err.message}`);
+                }
+                else {
+                    console.log(`From callback: Rename #${idx} ${old} to ${nyou}`);
+                }
+            };
         });
 
         beforeEach(function () {

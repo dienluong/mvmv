@@ -33,9 +33,13 @@ function createMover() {
             let newName = '';
             try {
                 newName = newFilesList[idx];
-                //TODO: prevent overwriting of existing files. (Use fs.exists()?)
-                fs.renameSync(oldName, newName);
-                successIndexes.push(idx);
+                if (!fs.existsSync(newName)) {
+                    fs.renameSync(oldName, newName);
+                    successIndexes.push(idx);
+                }
+                else {
+                    error = new Error(`Skipping rename: '${newName}' already exists.`);
+                }
             }
             catch (e) {
                 //TODO: return a Map where key=idx, value=error?
