@@ -38,7 +38,7 @@ function createMover() {
                     successIndexes.push(idx);
                 }
                 else {
-                    error = new Error(`Skipping rename: '${newName}' already exists.`);
+                    error = new Error(`Skipping rename of ${oldName}: '${newName}' already exists.`);
                 }
             }
             catch (e) {
