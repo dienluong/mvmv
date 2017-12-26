@@ -10,11 +10,11 @@ let currentMode = '';
 
 const interactiveMover = {
     commit: function commit(src, dst) {
-        let successList = [];
         // let readStdin = readline.createInterface({
         //     input: process.stdin,
         //     output: process.stdout
         // });
+        let successList = [];
 
         src.forEach(function confirmAndCommit(oldName, idx) {
             let newName = dst[idx];
@@ -40,7 +40,7 @@ const simulateMover = {
                 printWithMode(`    Unable to rename ${oldName}: \x1b[37;1m${dst[idx]}\x1b[0m already exists.`);
             }
             else {
-                printWithMode(`    Renaming \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
+                printWithMode(`    Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
                 successList.push(idx);
             }
         });
@@ -51,11 +51,24 @@ const simulateMover = {
 
 const verboseMover = {
     commit: function commit(src, dst) {
-        src.forEach(function verboseCommit(oldName, idx) {
-            printWithMode(`    Renaming \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
+        let successList = [];
+
+        src.forEach(function verboseCommit(srcName, idx) {
+            let result = defaultMover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
+                if (err) {
+                    printWithMode(`    ${err.message}`);
+                }
+                else {
+                    printWithMode(`    Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m`);
+                }
+            });
+
+            if (result.length) {
+                successList.push(idx);
+            }
         });
 
-        return defaultMover.commit(src, dst);
+        return successList;
     }
 };
 
