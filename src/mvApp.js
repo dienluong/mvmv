@@ -32,16 +32,19 @@ const interactiveMover = {
 };
 
 const simulateMover = {
-    commit: function commit(src, dst) {
+    commit: function commit(srcNames, dstNames) {
         let successList = [];
+        let newNamesList = [];
 
-        src.forEach(function simulateCommit(oldName, idx) {
-            if (fs.existsSync(dst[idx])) {
-                printWithMode(`    Unable to rename ${oldName}: \x1b[37;1m${dst[idx]}\x1b[0m already exists.`);
+        srcNames.forEach(function simulateCommit(srcName, idx) {
+            // TODO: enhance checking of already existing files by saving list of new names.
+            if (!fs.existsSync(dstNames[idx]) && !newNamesList.includes(dstNames[idx])) {
+                printWithMode(`    Renamed \x1b[37;1m${srcName}\x1b[0m to \x1b[37;1m${dstNames[idx]}\x1b[0m`);
+                newNamesList.push(dstNames[idx]);
+                successList.push(idx);
             }
             else {
-                printWithMode(`    Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${dst[idx]}\x1b[0m`);
-                successList.push(idx);
+                printWithMode(`    Skipping rename of '${srcName}': '${dstNames[idx]}' already exists.`);
             }
         });
 
@@ -90,7 +93,7 @@ function run () {
     .version('0.1.0')
     .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
     .option('-s, --simulate', 'Dry-runs the rename operations without affecting the file system.')
-    .option('-v, --verbose', 'Prints more detailed execution output.')
+    .option('-v, --verbose', 'Prints additional operation details.')
     .parse(process.argv);
 
     if (commandLine.args.length !== 2) {
@@ -136,5 +139,7 @@ function run () {
     }
 }
 
-//run();
+// Comment this when unit testing
+// run();
+// Uncomment below when unit testing
 module.exports.run = run;

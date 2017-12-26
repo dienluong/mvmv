@@ -95,7 +95,7 @@ describe('myApp', function () {
             expect(globby.sync(srcGlob).length).to.eql(0);
             expect(globby.sync(dstGlob).length).to.eql(0);
 
-            sinon.spy(console, "log");
+            sinon.spy(console, 'log');
             sinon.spy(commander, 'outputHelp');
             process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
             mvApp.run();
@@ -107,49 +107,70 @@ describe('myApp', function () {
             commander.outputHelp.restore();
         });
 
-        it('should display operations in --verbose mode', function () {
+        it('should display operations, when in --verbose mode', function () {
             let srcGlob = path.join(TEST_PATH, 'dotnames?.a.b');
-            let dstGlob = path.join(TEST_PATH, 'dotnames.a.b.old');
+            let dstFileName = path.join(TEST_PATH, 'dotnames.a.b.old');
             let starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
             let srcFiles = globby.sync(srcGlob);
-            let dstFiles = globby.sync(dstGlob);
+            let dstFiles = globby.sync(dstFileName);
 
             expect(srcFiles.length).to.eql(2);
             expect(dstFiles.length).to.eql(0);
-            sinon.spy(console, "log");
-            process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstGlob];
+            sinon.spy(console, 'log');
+            process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstFileName];
             mvApp.run();
             // Verify that verbose mode printout was performed...
-            expect(console.log.withArgs(`[Verbose]     Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
-            // Second source file should not be renamed as destination file already exists (due to rename of first source file)
-            expect(globby.sync(srcGlob)).to.have.members([ path.join(TEST_PATH, 'dotnames2.a.b') ]);
-            expect(globby.sync(dstGlob)).to.have.members([ path.join(TEST_PATH, 'dotnames.a.b.old') ]);
+            expect(console.log.withArgs(`[Verbose]     Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstFileName}\x1b[0m`).calledOnce).to.be.true;
+            expect(globby.sync(dstFileName).length).to.eql(1);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
             expect(globby.sync(starGlob)).to.not.have.members(allFiles);
+            // Second source file should NOT be renamed as destination file already exists (due to rename of first source file)
+            expect(globby.sync(srcGlob)).to.have.members([ srcFiles[1] ]);
+            expect(console.log.withArgs(`[Verbose]     Skipping rename of '${srcFiles[1]}': '${dstFileName}' already exists.`).calledOnce).to.be.true;
             console.log.restore();
         });
 
-        it('should not change the file system in --simulate mode', function () {
+        it('should display operational output but should not change the file system, when in --simulate mode', function () {
             let srcGlob = path.join(TEST_PATH, '*js$$');
+            let srcFiles = globby.sync(srcGlob);
             let dstGlob = path.join(TEST_PATH, '*hi^^');
+            let newFilenames = srcFiles.map(function (filename) {
+                return filename.replace(/js\$\$$/, 'hi^^');
+            });
             const starGlob = path.join(TEST_PATH, '*');
             const allFiles = globby.sync(starGlob);
 
+            sinon.spy(console, 'log');
             process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
             mvApp.run();
+            expect(console.log.withArgs(`[Simulate]     Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${newFilenames[0]}\x1b[0m`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`[Simulate]     Renamed \x1b[37;1m${srcFiles[1]}\x1b[0m to \x1b[37;1m${newFilenames[1]}\x1b[0m`).calledOnce).to.be.true;
 
             // Case where destination file already exists.
             srcGlob = path.join(TEST_PATH, '^onecaret.up^');
             dstGlob = path.join(TEST_PATH, '^^onecaret.up^');
             process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
             mvApp.run();
+            expect(console.log.withArgs(`[Simulate]     Skipping rename of '${srcGlob}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
 
+            // Case where multiple renames use the same destination filename.
+            srcGlob = path.join(TEST_PATH, '*.JPEG');
+            srcFiles = globby.sync(srcGlob);
+            dstGlob = path.join(TEST_PATH, 'newName.jpg');
+            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
+            mvApp.run();
+            expect(console.log.withArgs(`[Simulate]     Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`[Simulate]     Skipping rename of '${srcFiles[1]}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
+
+            // No file has changed
             expect(globby.sync(starGlob)).to.have.members(allFiles);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
+
+            console.log.restore();
         });
 
-        it('should ask for confirmation for each operation in --interactive mode', function () {
+        it('should ask for confirmation for each operation, when in --interactive mode', function () {
             let srcGlob = path.join(TEST_PATH, '*.js');
             let dstGlob = path.join(TEST_PATH, '*.old');
 
