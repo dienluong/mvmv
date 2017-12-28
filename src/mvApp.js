@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 const fs            = require('fs');
@@ -37,7 +39,6 @@ const simulateMover = {
         let newNamesList = [];
 
         srcNames.forEach(function simulateCommit(srcName, idx) {
-            // TODO: enhance checking of already existing files by saving list of new names.
             if (!fs.existsSync(dstNames[idx]) && !newNamesList.includes(dstNames[idx])) {
                 printWithMode(`    Renamed \x1b[37;1m${srcName}\x1b[0m to \x1b[37;1m${dstNames[idx]}\x1b[0m`);
                 newNamesList.push(dstNames[idx]);
@@ -85,16 +86,24 @@ function printWithMode(message) {
     console.log(message);
 }
 
+// function processArguments(source, target) {
+//     console.log(`processArguments ${source} ${target}`);
+// }
+
 function run () {
     let myMover = defaultMover;
     let result;
 
     commandLine
     .version('0.1.0')
+    .description('mvjs command renames files named by <source> to destination names specified by <target>.')
     .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
     .option('-s, --simulate', 'Dry-runs the rename operations without affecting the file system.')
     .option('-v, --verbose', 'Prints additional operation details.')
+    .arguments('<source> <target>')
     .parse(process.argv);
+    // .usage('[options] <source> <target>')
+    // .action(processArguments)
 
     if (commandLine.args.length !== 2) {
 // console.log('myApp DEBUG: ' + process.argv);
@@ -103,9 +112,10 @@ function run () {
         return;
     }
 
-// console.log('commandLine.simulate: ' + commandLine.simulate);
-// console.log('commandLine.verbose: ' + commandLine.verbose);
-// console.log('commandLine.interactive: ' + commandLine.interactive);
+    const srcGlob = commandLine.args[0];
+    const dstGlob = commandLine.args[1];
+    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
+
     if (commandLine.simulate) {
         currentMode = 'Simulate';
         myMover = simulateMover;
@@ -118,10 +128,6 @@ function run () {
         currentMode = 'Interactive';
         myMover = interactiveMover;
     }
-
-    const srcGlob = commandLine.args[0];
-    const dstGlob = commandLine.args[1];
-    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
 
     const myMvApp = Mv.create(null, null, myMover);
     try {
@@ -140,6 +146,6 @@ function run () {
 }
 
 // Comment this when unit testing
-// run();
+run();
 // Uncomment below when unit testing
-module.exports.run = run;
+// module.exports.run = run;
