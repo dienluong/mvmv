@@ -1,8 +1,8 @@
 {
-  "name": "mv-js",
+  "name": "mvjs",
   "version": "1.0.0",
   "description": "Shell script for batch renaming of files.",
-  "main": "mv.js",
+  "main": "src/mvApp.js",
   "dependencies": {
     "commander": "latest",
     "glob": "^7.1.1",
@@ -17,8 +17,15 @@
     "natural-filename-generator": "^1.0.0",
     "sinon": "^2.4.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dienluong/mv-js.git"
+  },
   "scripts": {
     "test": "mocha"
+  },
+  "bin": {
+    "mvjs": "./src/mvApp.js"
   },
   "author": "Dien Luong",
   "license": "ISC"
