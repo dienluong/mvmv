@@ -77,13 +77,16 @@ describe('mv', function () {
                 expect(myMover.commit.called).to.be.true;
             });
 
-            it('should throw an Error if no glob pattern provided', function () {
+            it('should throw an Error if glob pattern is missing or invalid', function () {
                 expect(() => this.myMv.exec()).to.throw();
                 expect(() => this.myMv.exec('abc')).to.throw();
                 expect(() => this.myMv.exec('abc', [])).to.throw();
                 expect(() => this.myMv.exec(123, '123')).to.throw();
                 expect(() => this.myMv.exec('', '123')).to.throw();
                 expect(() => this.myMv.exec('abc', '')).to.throw();
+                // Invalid because dest glob has more wildcards than source glob
+                expect(() => this.myMv.exec(path.join(TEST_PATH, '*'), path.join(TEST_PATH, '**'))).to.throw();
+                expect(() => this.myMv.exec(path.join(TEST_PATH, 'dotnames?.a.b'), path.join(TEST_PATH, '??_bad'))).to.throw();
             });
 
             it('should proceed renaming files based on provided globs and return the number of successful renames', function () {
