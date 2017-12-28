@@ -99,7 +99,7 @@ describe('When source glob does not match anything', function () {
             expect(result[0]).to.be.empty;
             result = renamer.computeName('1234', '12345', '6789');
             expect(result[0]).to.be.empty;
-            result = renamer.computeName('1234', '12**5', '**6789');
+            result = renamer.computeName('1234', '*2**5', '**6789');
             expect(result[0]).to.be.empty;
             result = renamer.computeName('1234', '12?45', '?6789');
             expect(result[0]).to.be.empty;
@@ -112,30 +112,100 @@ describe('When source glob does not match anything', function () {
  */
 describe('When number of given wildcard in destination glob is higher than in source glob', function () {
     describe('renamer.computeName(names, srcGlob, dstGlob)', function () {
-        it('should return empty string as result', function () {
+        beforeEach(function () {
+            this.myRenamer = renamer;
+            sinon.spy(this.myRenamer, 'computeName');
+        });
+
+        afterEach(function () {
+            this.myRenamer.computeName.restore();
+        });
+
+        it('should throw an Error', function () {
             /************ # of ? in SG < in DG ************/
-            let result = renamer.computeName('alx-rose.red', '*', '*?');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('^$', '??', '???');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('^bruce.wayne$', '*?*', '??');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('^bruce.wayne$', '*.wayne?', '??');
-            expect(result[0]).to.be.empty;
+            try {
+                this.myRenamer.computeName('alx-rose.red', '*', '*?');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('^$', '??', '???');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('^bruce.wayne$', '*?*', '??');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('^bruce.wayne$', '*.wayne?', '??');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('uvwxyz', 'uvwxyz', '123456?');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
 
             /************ # of * in SG < in DG ************/
-            result = renamer.computeName('.', '*', '*.*');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('.', '?', '?*');
-            expect(result[0]).to.be.empty;
+            try {
+                this.myRenamer.computeName('.', '*', '*.*');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('.', '?', '?*');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
             // ** is src glob counts as * ; but ** in dst glob remains unchanged
-            result = renamer.computeName('abc', '**', '**');
-            expect(result[0]).to.be.empty;
+            try {
+                this.myRenamer.computeName('abc', '**', '**');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
             // ***b* -> *b* in src glob; but *** in dst glob remains unchanged
-            result = renamer.computeName('abc', '***b*', '***');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('abc', '*ab**', '***');
-            expect(result[0]).to.be.empty;
+            try {
+                this.myRenamer.computeName('abc', '***b*', '***');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('abc', '*ab**', '***');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+            try {
+                this.myRenamer.computeName('uvwxyz', 'uvwxyz', '123456*');
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(Error)
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source');
+            }
+
+            expect(this.myRenamer.computeName.alwaysThrew('Error')).to.be.true;
         });
     });
 });
@@ -186,13 +256,11 @@ describe('When number of given wildcard in destination glob is equal or fewer th
  */
 describe('When source glob is a literal', function () {
     describe('renamer.computeName(names, srcGlob, dstGlob)', function () {
-        it('should return a literally the dst glob, if does not contain any wildcard', function () {
+        it('should return literally the dst glob, only if it does not contain any wildcard', function () {
             let result = renamer.computeName('uvwxyz', 'uvwxyz', '123456');
             expect(result[0]).to.be.eql('123456');
-            result = renamer.computeName('uvwxyz', 'uvwxyz', '123456?');
-            expect(result[0]).to.be.empty;
-            result = renamer.computeName('uvwxyz', 'uvwxyz', '123456*');
-            expect(result[0]).to.be.empty;
+
+            // but should return empty string if src glob does not match
             result = renamer.computeName('uvwxyz', 'uvwxy', '12345');
             expect(result[0]).to.be.empty;
         });
