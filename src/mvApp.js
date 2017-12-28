@@ -129,18 +129,19 @@ function run () {
         myMover = interactiveMover;
     }
 
-    const myMvApp = Mv.create(null, null, myMover);
+    const myMv = Mv.create(null, null, myMover);
     try {
-        result = myMvApp.exec(srcGlob, dstGlob);
+        result = myMv.exec(srcGlob, dstGlob);
     }
     catch (e) {
-        console.log(e.message);
+        console.log(`Error: ${e.message}`);
+        return;
     }
 
     if (result === null) {
         printWithMode(`File not found.`);
     }
-    else {
+    else if (Number.isFinite(result)) {
         printWithMode(`\x1b[36mRenamed ${result} file(s)\x1b[0m`);
     }
 }
