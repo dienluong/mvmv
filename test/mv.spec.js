@@ -1,6 +1,6 @@
 'use strict';
 
-const path          = require('path');
+const path          = require('path').posix;
 const mockFs        = require('mock-fs');
 const FilenameGen   = require('natural-filename-generator');
 const TEST_PATH     = path.join('test', 'test-data');

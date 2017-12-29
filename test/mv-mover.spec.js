@@ -2,7 +2,7 @@
 
 const mockFs        = require('mock-fs');
 const FilenameGen   = require('natural-filename-generator');
-const path          = require('path');
+const path          = require('path').posix;
 const fs            = require('fs');
 const globby        = require('globby');
 

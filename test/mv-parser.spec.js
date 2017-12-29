@@ -3,7 +3,7 @@
 const mockFs    = require('mock-fs');
 const globby    = require('globby');
 const fs        = require('fs');
-const path      = require('path');
+const path      = require('path').posix;
 const FilenameGenerator = require('natural-filename-generator');
 
 const expect  = require('chai').expect;

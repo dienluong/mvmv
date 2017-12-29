@@ -4,7 +4,7 @@ let mvApp           = require('../src/mvApp');
 let commander       = require('commander');
 const readlineSync  = require('readline-sync');
 
-const path          = require('path');
+const path          = require('path').posix;
 const mockFs        = require('mock-fs');
 const globby        = require('globby');
 const FilenameGen   = require('natural-filename-generator');
