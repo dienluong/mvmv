@@ -121,6 +121,18 @@ describe('mv-parser', function () {
             expect(result).to.have.members(sourceNames);
             globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
+
+            // Test names containing parens
+            pattern = path.join(TEST_PATH, ')Tpop(tarts');
+            result = this.myParser.resolve(pattern);
+            expect(result.length).to.eql(1);
+            expect(result).to.have.members([ this.fullnamesMap.get('parens')[0] ]);
+            expect(result).to.be.eql(globby.sync(pattern));
+            pattern = path.join(TEST_PATH, 'pop(tarts)TXT');
+            result = this.myParser.resolve(pattern);
+            expect(result.length).to.eql(1);
+            expect(result).to.have.members([ this.fullnamesMap.get('parens')[1] ]);
+            expect(result).to.be.eql(globby.sync(pattern));
         });
 
 
@@ -153,13 +165,15 @@ describe('mv-parser', function () {
             // Add peculiar filenames
             const specialNames = [ '^onecaret.up^', '^^onecaret.up^', '^twocarets.hi^^', '^^twocarets.hi^^',
                                 '$onedollar.tm$', '$$onedollar.tm$', '$twodollars.js$$', '$$twodollars.js$$',
-                                'dotnames1.a.b', 'dotnames2.a.b', 'dotdotnames1.z..', 'dotdotnames2.z..'];
+                                'dotnames1.a.b', 'dotnames2.a.b', 'dotdotnames1.z..', 'dotdotnames2.z..',
+                                ')Tpop(tarts', 'pop(tarts)TXT'];
             this.fullnamesMap.set('up^', [ path.join(TEST_PATH, specialNames[0]), path.join(TEST_PATH, specialNames[1]) ]);
             this.fullnamesMap.set('hi^^', [ path.join(TEST_PATH, specialNames[2]), path.join(TEST_PATH, specialNames[3]) ]);
             this.fullnamesMap.set('tm$', [ path.join(TEST_PATH, specialNames[4]), path.join(TEST_PATH, specialNames[5]) ]);
             this.fullnamesMap.set('js$$', [ path.join(TEST_PATH, specialNames[6]), path.join(TEST_PATH, specialNames[7]) ]);
             this.fullnamesMap.set('a.b', [ path.join(TEST_PATH, specialNames[8]), path.join(TEST_PATH, specialNames[9]) ]);
             this.fullnamesMap.set('z..', [ path.join(TEST_PATH, specialNames[10]), path.join(TEST_PATH, specialNames[11]) ]);
+            this.fullnamesMap.set('parens', [ path.join(TEST_PATH, specialNames[12]), path.join(TEST_PATH, specialNames[13]) ]);
             specialNames.forEach(function (name) {
                Object.defineProperty(folderContent, name, {
                    enumerable: true,
