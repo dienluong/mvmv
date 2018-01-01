@@ -94,11 +94,13 @@ describe('When * wildcard matches multiple characters', function () {
             expect(result[0].getGroups()[1]).to.eql({type: 'wildcard', pattern: '*', match: 'omer.j'});
             expect(result[0].hasMatch()).to.be.true;
 
-            result = capture(['lisa', 'maggie.', '.burns'], '*');
+            result = capture(['lisa', 'maggie.', 'x'], '*');
             expect(result[0].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: 'lisa'});
             expect(result[1].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: 'maggie.'});
-            expect(result[2].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: '.burns'});
+            expect(result[2].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: 'x'});
             expect(result[0].hasMatch()).to.be.true;
+            expect(result[1].hasMatch()).to.be.true;
+            expect(result[2].hasMatch()).to.be.true;
         });
     });
 });
@@ -199,7 +201,7 @@ describe('When * wildcard is used in glob pattern', function () {
             expect(result[0].getAsterisk()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
         });
-        // TO BE CONTINUED...?
+        //TODO: TO BE CONTINUED...?
     });
 });
 
@@ -223,6 +225,12 @@ describe('When ? wildcard matches one character', function () {
             result = capture(['homer.js'], 'homer.j?');
             expect(result[0].getGroups()[1]).to.eql({type: 'wildcard', pattern: '?', match: 's'});
             expect(result[0].hasMatch()).to.be.true;
+
+            result = capture(['.', 'x'], '?');
+            expect(result[0].getGroups()[0]).to.eql({type: 'wildcard', pattern: '?', match: '.'});
+            expect(result[1].getGroups()[0]).to.eql({type: 'wildcard', pattern: '?', match: 'x'});
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[1].hasMatch()).to.be.true;
         });
     });
 });
@@ -353,7 +361,7 @@ describe('When ? wildcard is used in glob pattern', function () {
             expect(result[0].getQuestionMark()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
         });
-        // TO BE CONTINUED...?
+        //TODO: TO BE CONTINUED...?
     });
 });
 
@@ -388,6 +396,24 @@ describe('When the literal part is matched', function () {
             result = capture(['homer.js'], '?omer.??');
             expect(result[0].getGroups()[1]).to.eql({type: 'literal', pattern: 'omer.', match: 'omer.'});
             expect(result[0].hasMatch()).to.be.true;
+
+            result = capture(['a', 'a'], 'a');
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: 'a', match: 'a'});
+            expect(result[1].getGroups()[0]).to.eql({type: 'literal', pattern: 'a', match: 'a'});
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[1].hasMatch()).to.be.true;
+
+            result = capture(['pop(tarts)TXT', ')Tpop(tarts'], 'pop(tarts)TXT');
+            expect(result.length).to.eql(2);
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: 'pop(tarts)TXT', match: 'pop(tarts)TXT'});
+            expect(result[0].getGroups().length).to.eql(1);
+
+            result = capture([')whe(re(is)my)sweet()(pop((tarts))TXT'], ')whe(re(is)my)sweet()(pop((tarts))TXT');
+            expect(result.length).to.eql(1);
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')whe(re(is)my)sweet()(pop((tarts))TXT', match: ')whe(re(is)my)sweet()(pop((tarts))TXT'});
+            expect(result[0].getGroups().length).to.eql(1);
         });
     });
 });
@@ -426,6 +452,11 @@ describe('When the literal part has no match', function () {
             result = capture(['homer.js'], 'homer');
             expect(result[0].getGroups()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
+
+            result = capture(['pop(tarts)TXT', ')Tpop(tarts'], 'pop(tarts)TXT');
+            expect(result.length).to.eql(2);
+            expect(result[1].getGroups()).to.be.empty;
+            expect(result[1].hasMatch()).to.be.false;
         });
     });
 });

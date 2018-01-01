@@ -58,7 +58,7 @@ function deconstruct(glob, options) {
 
 /**
  * For each element in names array (1st argument), return a captureGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
- * Example: ?omer.* => Parts: 1) '?', 2) 'omer.', 3) '*'
+ * Example of parts of a glob: "?omer.*" => Parts: 1) '?', 2) 'omer.', 3) '*'
  * @method capture
  * @param names {String[]} List of names
  * @param glob {String} The glob pattern to be applied to names
@@ -75,7 +75,14 @@ function capture(names, glob) {
     }
 
     // Transform glob pattern to equivalent regex
-    let regex = glToRe(glob, {extended: true});
+    // TODO: choose one of the two methods for adding capture groups
+    // let regex = glToRe(glob, {extended: true});
+    // regex = __addCaptureGroups(regex);
+    let regex = _convertToRegExWithCaptureGroups(glob);
+
+    // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
+    // console.log('Regex : ' + regex);
+    // console.log('Regex2: ' + regex2);
     // console.log('Gl-to-Re:    ' + re);
 
    // Produce array of groups (* , ? or literal) from glob string
@@ -88,7 +95,7 @@ function capture(names, glob) {
     // re2 = new RegExp(re2.source.replace('(?:', '('));
     // console.log('Micromatch mod:' + re2);
 
-    // For each names received, return an object containing the match for each capture group,
+    // For each names received, return an object containing the match for each part of the glob,
     return names.map(function buildCaptureGroupsCollection(name) {
         let groupsObj = _captureGroupsCollectionFactory();
         groupsObj.initGroups(regex);
@@ -97,15 +104,56 @@ function capture(names, glob) {
     });
 }
 
+
+/**
+ * Convert glob into regex with capture groups.
+ * Example: abc.123.*DEF --> (abc)(.)(123)(.*)(DEF)
+ * @method _convertToRegExWithCaptureGroups
+ * @private
+ * @param glob {String} The glob pattern
+ * @returns {RegExp} Regular expression with capture groups added to the various parts
+ */
+function _convertToRegExWithCaptureGroups(glob) {
+    let parts = deconstruct(glob, {collapse: true});
+
+    let partsWithCaptureGroups = parts.map(function processPart(p) {
+        if (typeof p === 'string') {
+            switch (p) {
+                case '*':
+                    return '(.*)';
+                    break;
+                case '?':
+                    return '(.)';
+                    break;
+                default:
+                    // Escape all characters that must be escaped by using glob-to-regexp module
+                    p = glToRe(p).source;
+                    // Removes ^ and $ from the regexp source produced by glob-to-regexp
+                    p = p.length > 2 ? p.slice(1, p.length - 1) : p;
+                    return `(${p})`;
+            }
+        }
+        else {
+            return '';
+        }
+    });
+
+    partsWithCaptureGroups.unshift('^');
+    partsWithCaptureGroups.push('$');
+
+    return new RegExp(partsWithCaptureGroups.join(''));
+}
+
+
 /**
  * Add capture groups to a regular expression.
  * Example: abc.123.*DEF --> (abc)(.)(123)(.*)(DEF)
- * @method _addCaptureGroups
+ * @method __addCaptureGroups
  * @private
  * @param re {RegExp} The regular expression to process
- * @returns {RegExp} Regular expression with capture groups added
+ * @returns {RegExp} Regular expression with capture groups added to the various parts
  */
-function _addCaptureGroups(re) {
+function __addCaptureGroups(re) {
     "use strict";
     if (!re || (typeof re.source) !== 'string') {
         return null;
@@ -165,7 +213,93 @@ function _addCaptureGroups(re) {
 }
 
 /**
- * Extracts the capture groups of a regular expression and returns them in an array
+ *
+ * @method _countRepeatingCharBackwards
+ * @private
+ * @param str {String} String to search
+ * @param wanted {String} Character to look for
+ * @param start {Number} Starting index
+ * @returns {number} Number of successive occurrences of the character
+ */
+function _countRepeatingCharBackwards(str, wanted, start) {
+    let count = 0;
+
+    if ((typeof str !== 'string') || (typeof wanted !== 'string')) {
+        return 0;
+    }
+
+    if (!Number.isFinite(start) || (start < 0) || (start >= str.length)) {
+        return 0;
+    }
+
+    // search backwards in the string
+    for (let i = start; i >= 0; i -= 1) {
+        if (str.charAt(i) === wanted) {
+            count += 1;
+        }
+        else {
+            // returns as soon as chararacter is not 'wanted'
+            return count;
+        }
+    }
+
+    return count;
+}
+
+/**
+ *
+ * @method _findCaptureParensInRegExp
+ * @private
+ * @param re {RegExp}
+ * @param start {Number}
+ * @return {Number[]}
+ */
+function _findCaptureParensInRegExp(re, start) {
+    if (!re || ((typeof re.source) !== 'string')) { return []; }
+
+    if (!Number.isFinite(start)) { return []; }
+
+    let source = re.source;
+    let open, closing;
+    let cursor;
+
+    for (let i = start; i < source.length; i += 1) {
+        cursor = source.indexOf('(', i);
+        if (cursor === -1) { return []; }
+
+        let count = _countRepeatingCharBackwards(source, '\\', cursor - 1);
+        // If the number of repeating \ is even, then it is a literal '\' char in the regexp.
+        // Consequently, the char on its right is not escaped.
+        // So if the '(' found was not escaped, it is a capture paren; next is to look for the matching closing paren ')'
+        if ((count % 2) === 0) {
+            open = cursor;
+            for (let j = open + 1; j < source.length; j += 1 ) {
+                cursor = source.indexOf(')', j);
+                if (cursor === -1) { return []; }
+
+                count = _countRepeatingCharBackwards(source, '\\', cursor - 1);
+                // if ')' found is an capture group closing paren, i.e. not escaped by \, then return the results;
+                if ((count % 2) === 0) {
+                    closing = cursor;
+                    return [open, closing];
+                }
+                else {
+                    // if ')' found is a literal ')' char, then continue search at cursor...
+                    j = cursor;
+                }
+            }
+        }
+        else {
+            // if '(' found is a literal '(' char, then continue search at cursor...
+            i = cursor;
+        }
+    }
+
+    return [];
+}
+
+/**
+ * Extracts the expression inside capture groups of the received regular expression and returns them in an array
  * @method _extractCaptureGroups
  * @private
  * @param re {RegExp} The regular expression to process
@@ -178,23 +312,12 @@ function _extractCaptureGroups(re) {
     }
     let source = re.source;
     let captureGroups = [];
-    let start = source.indexOf('(', 0);
-
-    while (start !== -1) {
-        let end = source.indexOf(')', start);
-        if (end === -1) {
-            end = source.length;
-        }
-        // do not include the parens
-        let token = source.slice(start + 1, end);
-        if (token === '.') {
-            token = '?';
-        }
-        if (token === '.*') {
-            token = '*';
-        }
-        captureGroups.push(token);
-        start = source.indexOf('(', end + 1);
+    let parensIndexes = _findCaptureParensInRegExp(re, 0);
+    while (parensIndexes.length > 1) {
+        // grab the regex between the identified capture group parens
+        captureGroups.push(source.slice(parensIndexes[0]+1, parensIndexes[1]));
+        // Search next capture group parens
+        parensIndexes = _findCaptureParensInRegExp(re, parensIndexes[1] + 1);
     }
 
     return captureGroups;
@@ -207,13 +330,22 @@ function _extractCaptureGroups(re) {
  * @private
  */
 function _captureGroupsCollectionFactory() {
+    /**
+     * @method initGroups
+     * @param regex {RegExp} Regular expression with capture groups
+     * @param text
+     */
     function initGroups(regex, text) {
+        if (this._groups) {
+            // Do nothing if already groups already built
+            return;
+        }
+
         if (!regex) {
             return;
         }
         else {
-            // Wrap various parts of a regex with capture groups
-            this._regexWithCapture = _addCaptureGroups(regex);
+            this._regexWithCapture = regex;
 
             // Produce an array of all capture groups from a regex
             this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
@@ -226,7 +358,7 @@ function _captureGroupsCollectionFactory() {
 
     /**
      * Builds an array of group objects for each capture group in regex
-     * @param text {String}
+     * @param text {String} The text to apply the regex on.
      * @param [regex] {String} regex used for math provided text
      * @return {Object[]} - If the glob matches the given text, then each element of the array is an object
      *                          for each "group" of the glob pattern; Example for glob 'h*':
@@ -265,19 +397,17 @@ function _captureGroupsCollectionFactory() {
         }
 
         // Resets properties
-        if (!this._groups) {
-            this._groups = [];
-            this._questionMark = null;
-            this._asterisk = null;
+        this._groups = [];
+        this._questionMark = null;
+        this._asterisk = null;
 
-        }
         this._regexCaptureGroupArray.forEach(function (g, idx) {
-            // only produce result for capture group for wildcard ? and *
-            // [idx + 1] because whole match is first element of array of matches
-            if (g === '?' || g === '*') {
+            // matches[idx + 1] because whole match is first element of the array of matches
+            if (g === '.' || g === '.*') {
+                let glob = (g === '.') ? '?' : '*';
                 this._groups.push({
                     type: "wildcard",
-                    pattern: g,
+                    pattern: glob,
                     match: matches[idx + 1]
                 });
             }
