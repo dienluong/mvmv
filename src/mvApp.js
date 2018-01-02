@@ -6,9 +6,19 @@ const fs            = require('fs');
 const readlineSync  = require('readline-sync');
 const commandLine   = require('commander');
 const Mv            = require('../src/mv');
-const defaultMover  = require('../src/mv-mover').create();
+const Mover         = require('../src/mv-mover').create();
 
 let currentMode = '';
+
+const defaultMover = {
+    commit: function commit(src, dst) {
+        return Mover.commit(src, dst, null, (err) => {
+            if (err) {
+                printWithMode(err.message);
+            }
+        });
+    }
+};
 
 const interactiveMover = {
     commit: function commit(src, dst) {
@@ -23,7 +33,7 @@ const interactiveMover = {
             const answerBool = readlineSync.keyInYN(`    Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
 // console.log('readlineSync: ' + answerBool);
             if (answerBool) {
-                let resultArr = defaultMover.commit([oldName], [newName], null, (err) => {
+                let resultArr = Mover.commit([oldName], [newName], null, (err) => {
                     if (err) {
                         printWithMode(`    ${err.message}`);
                     }
@@ -64,7 +74,7 @@ const verboseMover = {
         let successList = [];
 
         src.forEach(function verboseCommit(srcName, idx) {
-            let resultArr = defaultMover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
+            let resultArr = Mover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
                 if (err) {
                     printWithMode(`    ${err.message}`);
                 }

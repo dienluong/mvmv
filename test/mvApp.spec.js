@@ -85,6 +85,19 @@ describe('myApp', function () {
             expect(globby.sync(dstGlob).length).to.eql(4);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
             expect(globby.sync(starGlob)).to.not.have.members(allFiles);
+
+            // should work even when destination path exists but is different than source path
+            srcGlob = path.join(TEST_PATH, '*.jpeg');
+            dstGlob = path.join('test', 'test-data2', '*.png');
+            expect(globby.sync(srcGlob).length).to.eql(2);
+            expect(globby.sync(dstGlob).length).to.eql(0);
+
+            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
+            mvApp.run();
+            expect(globby.sync(srcGlob).length).to.eql(0);
+            expect(globby.sync(dstGlob).length).to.eql(2);
+            expect(globby.sync(starGlob).length).to.eql(allFiles.length - 2);
+            expect(globby.sync(path.join('test', 'test-data2', '*'))).to.have.members(globby.sync(dstGlob));
         });
 
         it('should display message if no source file found', function () {
@@ -103,6 +116,30 @@ describe('myApp', function () {
             // Valid command line, usage info should NOT be displayed
             expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
+
+            console.log.restore();
+            commander.outputHelp.restore();
+        });
+
+        it('should display message if destination path does not exist', function () {
+            let starGlob = path.join(TEST_PATH, '*');
+            let allFiles = globby.sync(starGlob);
+            let srcGlob = path.join(TEST_PATH, '*.JS');
+            let dstGlob = path.join('test', 'newpath', '*.es6');
+            expect(globby.sync(srcGlob).length).to.eql(2);
+            expect(globby.sync(dstGlob).length).to.eql(0);
+
+            sinon.spy(console, 'log');
+            sinon.spy(commander, 'outputHelp');
+            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
+            mvApp.run();
+            expect(console.log.calledWith(sinon.match('Failed rename commit.'))).to.be.true;
+            // Valid command line, usage info should NOT be displayed
+            expect(commander.outputHelp.called).to.be.false;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+            expect(globby.sync(srcGlob).length).to.eql(2);
+            expect(globby.sync(dstGlob).length).to.eql(0);
+
             console.log.restore();
             commander.outputHelp.restore();
         });
@@ -220,7 +257,8 @@ describe('myApp', function () {
 
             // creates mock test folder and files
             mockFs({
-                'test/test-data': folderContent
+                'test/test-data' : folderContent,
+                'test/test-data2': {}
             });
 
             this.argv = process.argv;   // backs up argv
