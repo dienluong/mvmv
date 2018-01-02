@@ -131,7 +131,7 @@ describe('mv-mover', function () {
                                 789,
                                 'success.new'];
 
-            const returned = this.myMover.commit(filesList, newFilesList);
+            let returned = this.myMover.commit(filesList, newFilesList);
             // Renames:
             // [0] success
             // [1] success
@@ -143,6 +143,12 @@ describe('mv-mover', function () {
             // [7] failed because no corresponding new name in array
             expect(returned).to.have.members([0, 1, 6]);
             expect(returned.length).to.eql(3);
+
+            // should also work when destination path exists but is different than source path
+            filesList = globby.sync(path.join(TEST_PATH, '*.jpeg'));
+            newFilesList = [ path.join('test', 'test-data2', path.basename(filesList[0])), path.join('test', 'test-data2', path.basename(filesList[1])) ];
+            returned = this.myMover.commit(filesList, newFilesList);
+            expect(returned.length).to.eql(2);
         });
 
         it('should return empty [] if no successful rename completed', function () {
@@ -152,6 +158,7 @@ describe('mv-mover', function () {
             let returned = this.myMover.commit(src, dest);
             expect(returned).to.be.empty;
 
+            // Following commit should fail because destination path does not exist
             src = globby.sync(path.join(TEST_PATH, '*.jpeg'));
             dest = [ path.join('test', 'new-test', path.basename(src[0])), path.join('test', 'new-test', path.basename(src[1])) ];
             returned = this.myMover.commit(src, dest);
@@ -268,7 +275,8 @@ describe('mv-mover', function () {
 
             // creates mock test folder and files
             mockFs({
-                'test/test-data': folderContent
+                'test/test-data': folderContent,
+                'test/test-data2': {}
             });
         });
 
