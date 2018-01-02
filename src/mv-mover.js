@@ -11,21 +11,15 @@ function createMover() {
      * Returns as soon as error encountered.
      * @param filesList {String[]} List of files to rename
      * @param newFilesList {String[]} List of new names
-     * @param [location] {String} Path of the source files on filesystem
+     * @param [options] {Object} For future use
      * @param [callback] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
      * @return {Number[]} Index of names for which rename succeeded;
      * @throws {Error} An Error object
      */
-    function commit(filesList, newFilesList, location, callback) {
+    function commit(filesList, newFilesList, options, callback) {
         let successIndexes = [];
         if (!Array.isArray(filesList) || !Array.isArray(newFilesList)) {
             throw new TypeError('Expects arrays of old and new names.');
-        }
-
-        if (location && (typeof location === 'string')) {
-            if (fs.existsSync(location)) {
-                // TODO: Add support for location argument?
-            }
         }
 
         filesList.forEach(function renameFile(oldName, idx) {
