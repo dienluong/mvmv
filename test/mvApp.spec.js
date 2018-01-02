@@ -121,13 +121,13 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstFileName];
             mvApp.run();
             // Verify that verbose mode printout was performed...
-            expect(console.log.withArgs(`[Verbose]     Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstFileName}\x1b[0m`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`    Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstFileName}\x1b[0m`).calledOnce).to.be.true;
             expect(globby.sync(dstFileName).length).to.eql(1);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
             expect(globby.sync(starGlob)).to.not.have.members(allFiles);
             // Second source file should NOT be renamed as destination file already exists (due to rename of first source file)
             expect(globby.sync(srcGlob)).to.have.members([ srcFiles[1] ]);
-            expect(console.log.withArgs(`[Verbose]     Skipping rename of '${srcFiles[1]}': '${dstFileName}' already exists.`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`    Skipping rename of '${srcFiles[1]}': '${dstFileName}' already exists.`).calledOnce).to.be.true;
             console.log.restore();
         });
 

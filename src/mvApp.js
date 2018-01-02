@@ -23,7 +23,13 @@ const interactiveMover = {
             const answerBool = readlineSync.keyInYN(`    Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
 // console.log('readlineSync: ' + answerBool);
             if (answerBool) {
-                if (defaultMover.commit([oldName], [newName]).length) {
+                let resultArr = defaultMover.commit([oldName], [newName], null, (err) => {
+                    if (err) {
+                        printWithMode(`    ${err.message}`);
+                    }
+                });
+
+                if (resultArr.length) {
                     successList.push(idx);
                 }
             }
@@ -58,7 +64,7 @@ const verboseMover = {
         let successList = [];
 
         src.forEach(function verboseCommit(srcName, idx) {
-            let result = defaultMover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
+            let resultArr = defaultMover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
                 if (err) {
                     printWithMode(`    ${err.message}`);
                 }
@@ -67,7 +73,7 @@ const verboseMover = {
                 }
             });
 
-            if (result.length) {
+            if (resultArr.length) {
                 successList.push(idx);
             }
         });
@@ -78,7 +84,7 @@ const verboseMover = {
 
 function printWithMode(message) {
     let mode = '';
-    if (currentMode) {
+    if (currentMode === 'Simulate') {
         mode = `[${currentMode}] `;
     }
     message = mode + message;
@@ -96,7 +102,9 @@ function run () {
 
     commandLine
     .version('0.1.0')
-    .description('mvjs command renames files named by <source> to destination names specified by <target>.')
+    .description('mvjs command renames files named by <source> to destination names specified by <target>.\n' +
+        '  mvjs supports * and ? globbing wildcards for specifying file name pattern.\n' +
+        '  If wildcards are used, <source> or <target> must be wrapped in quotes, unless on Windows.')
     .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
     .option('-s, --simulate', 'Dry-runs the rename operations without affecting the file system.')
     .option('-v, --verbose', 'Prints additional operation details.')
@@ -120,13 +128,13 @@ function run () {
         currentMode = 'Simulate';
         myMover = simulateMover;
     }
-    else if (commandLine.verbose) {
-        currentMode = 'Verbose';
-        myMover = verboseMover;
-    }
     else if (commandLine.interactive) {
         currentMode = 'Interactive';
         myMover = interactiveMover;
+    }
+    else if (commandLine.verbose) {
+        currentMode = 'Verbose';
+        myMover = verboseMover;
     }
 
     const myMv = Mv.create(null, null, myMover);
