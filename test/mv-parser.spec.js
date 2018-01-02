@@ -17,27 +17,31 @@ describe('mv-parser', function () {
         it('should return [] if no file matched', function () {
             let pattern = path.join(TEST_PATH, '*.bob');
             let result = this.myParser.resolve(pattern);
-            expect(this.myParser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
+            expect(result).to.eql(globby.sync(pattern));
 
             pattern = '*.txt';
             result = this.myParser.resolve(pattern);
-            expect(this.myParser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
+            expect(result).to.eql(globby.sync(pattern));
 
             pattern = '*.txt/';
             result = this.myParser.resolve(pattern);
-            expect(this.myParser.resolve.returned([])).to.be.true;
-            expect(result).to.eql(globby.sync(pattern));
             expect(result).to.be.empty;
+            expect(result).to.eql(globby.sync(pattern));
 
             pattern = path.join('.', '*.JPEG');
             result = this.myParser.resolve(pattern);
-            expect(this.myParser.resolve.returned([])).to.be.true;
-            expect(result).to.be.eql(globby.sync(pattern));
             expect(result).to.be.empty;
+            expect(result).to.be.eql(globby.sync(pattern));
+
+            // Test paths using \ as separator (Windows)
+            pattern = 'test\\test-data\\)Tpop(tarts';
+            result = this.myParser.resolve(pattern);
+            expect(result).to.be.empty;
+            expect(result).to.be.eql(globby.sync(pattern));
+
+            expect(this.myParser.resolve.alwaysReturned([])).to.be.true;
         });
 
         it('should return array of file names matching glob pattern', function () {
