@@ -146,10 +146,15 @@ describe('mv-mover', function () {
         });
 
         it('should return empty [] if no successful rename completed', function () {
-            let missingFile = [ path.join(TEST_PATH, 'missing.file') ];
-            let newFile = [ path.join(TEST_PATH, 'a.file')];
+            let src = [ path.join(TEST_PATH, 'missing.file') ];
+            let dest = [ path.join(TEST_PATH, 'a.file')];
 
-            const returned = this.myMover.commit(missingFile, newFile);
+            let returned = this.myMover.commit(src, dest);
+            expect(returned).to.be.empty;
+
+            src = globby.sync(path.join(TEST_PATH, '*.jpeg'));
+            dest = [ path.join('test', 'new-test', path.basename(src[0])), path.join('test', 'new-test', path.basename(src[1])) ];
+            returned = this.myMover.commit(src, dest);
             expect(returned).to.be.empty;
         });
 
@@ -235,9 +240,8 @@ describe('mv-mover', function () {
             const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
             let folderContent = {};
 
-            // Build a Map tracking all files in the mock filesystem (created w/ mock-fs).
-            // Key is the file extension and value is an array of the filenames with that extension
-            // Also builds the object "folderContent" for mock-fs
+            // Build the object "folderContent" for mock-fs;
+            // for each extension, generate two files
             for (let i = extensions.length - 1; i >= 0; i -= 1) {
                 const name1 = g.generate(extensions[i]);
                 const name2 = g.generate(extensions[i]);
