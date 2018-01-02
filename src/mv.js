@@ -33,7 +33,7 @@ function createMv(parser, renamer, mover) {
 
     function _renameFiles(oldFilenames, newFilenames, callback) {
         callback = typeof callback === 'function' ? callback : null;
-        return _mover.commit(oldFilenames, newFilenames, callback);
+        return _mover.commit(oldFilenames, newFilenames, null, callback);
     }
 
     function init(p, r, m) {
