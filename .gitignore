@@ -5,3 +5,4 @@ test/setup/roadmap.md
 tmp
 .idea
 .DS_Store
+*.history
