@@ -58,21 +58,21 @@ function createRenamer() {
             throw new Error('Unexpected error while extracting glob matches.');
         }
 
-        let computedNames = names.map(function buildNewName(name, iName) {
+        let computedNames = names.map(function buildNewName(name, nameIdx) {
             // if source glob can't match the name, then can't construct new name
-            if (!srcCaptureGroupsArray[iName].hasMatch()) {
+            if (!srcCaptureGroupsArray[nameIdx].hasMatch()) {
                 return '';
             }
 
             let newName = '';
-            let srcAsteriskList = srcCaptureGroupsArray[iName].getAsterisk();
+            let srcAsteriskList = srcCaptureGroupsArray[nameIdx].getAsterisk();
             let srcAsteriskIterator = srcAsteriskList && srcAsteriskList.length ? srcAsteriskList.entries() : null;
-            let srcQuestionMarkList = srcCaptureGroupsArray[iName].getQuestionMark();
+            let srcQuestionMarkList = srcCaptureGroupsArray[nameIdx].getQuestionMark();
             let srcQuestionMarkIterator = srcQuestionMarkList && srcQuestionMarkList.length ? srcQuestionMarkList.entries() : null;
 
             let end = dstGlobParts.length;
-            for (let iPart = 0; iPart < end; iPart += 1) {
-                let destPart = dstGlobParts[iPart];
+            for (let partIdx = 0; partIdx < end; partIdx += 1) {
+                let destPart = dstGlobParts[partIdx];
                 let srcGroup;
                 switch (destPart) {
                     case '*':
