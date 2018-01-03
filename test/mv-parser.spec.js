@@ -35,13 +35,19 @@ describe('mv-parser', function () {
             expect(result).to.be.empty;
             expect(result).to.be.eql(globby.sync(pattern));
 
+            expect(this.myParser.resolve.alwaysReturned([])).to.be.true;
+
             // Test paths using \ as separator (Windows)
             pattern = 'test\\test-data\\)Tpop(tarts';
             result = this.myParser.resolve(pattern);
-            expect(result).to.be.empty;
-            expect(result).to.be.eql(globby.sync(pattern));
+            if (process.platform === 'win32') {
+                expect(result.length).to.eql(1);
+            }
+            else {
+                expect(result).to.be.empty;
+            }
 
-            expect(this.myParser.resolve.alwaysReturned([])).to.be.true;
+            expect(result).to.be.eql(globby.sync(pattern));
         });
 
         it('should return array of file names matching glob pattern', function () {
