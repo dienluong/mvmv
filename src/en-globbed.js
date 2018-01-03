@@ -31,7 +31,7 @@ function deconstruct(glob, options) {
 
     if (options && options.collapse) {
         // Any multiple consecutive * is equivalent to a single *
-        subGlob = glob.replace(/\*{2,}/,'*');
+        subGlob = glob.replace(/\*{2,}/g,'*');
     }
 
     marker = subGlob.search(/[*|?]/g);
