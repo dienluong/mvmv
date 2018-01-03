@@ -158,6 +158,23 @@ describe('When ** is specified', function () {
             expect(result[0].getGroups().length).to.equal(4);
             expect(result[0].getGroups()[3]).to.eql({type: 'wildcard', pattern: '*', match: ''});
             expect(result[0].hasMatch()).to.be.true;
+
+            result = capture(['abcdef', '123bf4'], '**b**f***');
+            expect(result.length).to.equal(2);
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[0].getGroups().length).to.equal(5);
+            expect(result[0].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: 'a'});
+            expect(result[0].getGroups()[1]).to.eql({type: 'literal', pattern: 'b', match: 'b'});
+            expect(result[0].getGroups()[2]).to.eql({type: 'wildcard', pattern: '*', match: 'cde'});
+            expect(result[0].getGroups()[3]).to.eql({type: 'literal', pattern: 'f', match: 'f'});
+            expect(result[0].getGroups()[4]).to.eql({type: 'wildcard', pattern: '*', match: ''});
+            expect(result[1].hasMatch()).to.be.true;
+            expect(result[1].getGroups().length).to.equal(5);
+            expect(result[1].getGroups()[0]).to.eql({type: 'wildcard', pattern: '*', match: '123'});
+            expect(result[1].getGroups()[1]).to.eql({type: 'literal', pattern: 'b', match: 'b'});
+            expect(result[1].getGroups()[2]).to.eql({type: 'wildcard', pattern: '*', match: ''});
+            expect(result[1].getGroups()[3]).to.eql({type: 'literal', pattern: 'f', match: 'f'});
+            expect(result[1].getGroups()[4]).to.eql({type: 'wildcard', pattern: '*', match: '4'});
         });
     });
 });
@@ -290,11 +307,11 @@ describe('When multiple ? wildcards are used', function () {
             expect(result[0].getGroups()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
 
-            result = capture(['homer.js'], '?homer.js');
+            result = capture(['homer.js'], '??homer?js');
             expect(result[0].getGroups()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
 
-            result = capture(['homer.js'], 'homer.js?');
+            result = capture(['homer.js'], '??mer.js??');
             expect(result[0].getGroups()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
         });
@@ -303,6 +320,14 @@ describe('When multiple ? wildcards are used', function () {
             let result = capture(['homer.js'], 'ho?er?js');
             expect(result[0].getGroups()[1]).to.eql({type: 'wildcard', pattern: '?', match: 'm'});
             expect(result[0].getGroups()[3]).to.eql({type: 'wildcard', pattern: '?', match: '.'});
+            expect(result[0].hasMatch()).to.be.true;
+
+            result = capture(['homer.js'], 'h??e???s');
+            expect(result[0].getGroups()[1]).to.eql({type: 'wildcard', pattern: '?', match: 'o'});
+            expect(result[0].getGroups()[2]).to.eql({type: 'wildcard', pattern: '?', match: 'm'});
+            expect(result[0].getGroups()[4]).to.eql({type: 'wildcard', pattern: '?', match: 'r'});
+            expect(result[0].getGroups()[5]).to.eql({type: 'wildcard', pattern: '?', match: '.'});
+            expect(result[0].getGroups()[6]).to.eql({type: 'wildcard', pattern: '?', match: 'j'});
             expect(result[0].hasMatch()).to.be.true;
 
             result = capture(['homer.js'], '????????');
