@@ -3,6 +3,7 @@
 'use strict';
 
 const fs            = require('fs');
+const path          = require('path').posix;
 const readlineSync  = require('readline-sync');
 const commandLine   = require('commander');
 const Mv            = require('../src/mv');
@@ -22,20 +23,16 @@ const defaultMover = {
 
 const interactiveMover = {
     commit: function commit(src, dst) {
-        // let readStdin = readline.createInterface({
-        //     input: process.stdin,
-        //     output: process.stdout
-        // });
         let successList = [];
 
         src.forEach(function confirmAndCommit(oldName, idx) {
             let newName = dst[idx];
-            const answerBool = readlineSync.keyInYN(`    Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
+            const answerBool = readlineSync.keyInYN(`Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
 // console.log('readlineSync: ' + answerBool);
             if (answerBool) {
                 let resultArr = Mover.commit([oldName], [newName], null, (err) => {
                     if (err) {
-                        printWithMode(`    ${err.message}`);
+                        printWithMode(`${err.message}`);
                     }
                 });
 
@@ -55,13 +52,19 @@ const simulateMover = {
         let newNamesList = [];
 
         srcNames.forEach(function simulateCommit(srcName, idx) {
-            if (!fs.existsSync(dstNames[idx]) && !newNamesList.includes(dstNames[idx])) {
-                printWithMode(`    Renamed \x1b[37;1m${srcName}\x1b[0m to \x1b[37;1m${dstNames[idx]}\x1b[0m`);
-                newNamesList.push(dstNames[idx]);
-                successList.push(idx);
+            if (!fs.existsSync(path.dirname(dstNames[idx]))) {
+                // Cannot rename if destination path does not exist
+                printWithMode(`No such file or directory '${dstNames[idx]}'`);
             }
             else {
-                printWithMode(`    Skipping rename of '${srcName}': '${dstNames[idx]}' already exists.`);
+                if (!fs.existsSync(dstNames[idx]) && !newNamesList.includes(dstNames[idx])) {
+                    printWithMode(`Renamed \x1b[37;1m${srcName}\x1b[0m to \x1b[37;1m${dstNames[idx]}\x1b[0m`);
+                    newNamesList.push(dstNames[idx]);
+                    successList.push(idx);
+                }
+                else {
+                    printWithMode(`Skipping rename of '${srcName}': '${dstNames[idx]}' already exists.`);
+                }
             }
         });
 
@@ -76,10 +79,10 @@ const verboseMover = {
         src.forEach(function verboseCommit(srcName, idx) {
             let resultArr = Mover.commit([srcName], [dst[idx]], null, (err, oldName, newName) => {
                 if (err) {
-                    printWithMode(`    ${err.message}`);
+                    printWithMode(`${err.message}`);
                 }
                 else {
-                    printWithMode(`    Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m`);
+                    printWithMode(`Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m`);
                 }
             });
 
@@ -101,10 +104,6 @@ function printWithMode(message) {
 
     console.log(message);
 }
-
-// function processArguments(source, target) {
-//     console.log(`processArguments ${source} ${target}`);
-// }
 
 function run () {
     let myMover = defaultMover;
@@ -130,10 +129,6 @@ function run () {
         return;
     }
 
-    const srcGlob = commandLine.args[0];
-    const dstGlob = commandLine.args[1];
-    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
-
     if (commandLine.simulate) {
         currentMode = 'Simulate';
         myMover = simulateMover;
@@ -146,6 +141,10 @@ function run () {
         currentMode = 'Verbose';
         myMover = verboseMover;
     }
+
+    const srcGlob = commandLine.args[0];
+    const dstGlob = commandLine.args[1];
+    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
 
     const myMv = Mv.create(null, null, myMover);
     try {
@@ -165,6 +164,6 @@ function run () {
 }
 
 // Comment this when unit testing
-// run();
+run();
 // Uncomment below when unit testing
-module.exports.run = run;
+// module.exports.run = run;
