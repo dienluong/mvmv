@@ -51,19 +51,21 @@ const simulateMover = {
         let successList = [];
         let newNamesList = [];
 
-        srcNames.forEach(function simulateCommit(srcName, idx) {
-            if (!fs.existsSync(path.dirname(dstNames[idx]))) {
+        srcNames.forEach(function simulateCommit(src, idx) {
+            // Remove the trailing '/', if any.
+            let dst = dstNames[idx].endsWith('/') ? dstNames[idx].slice(0, -1) : dstNames[idx];
+            if (!fs.existsSync(path.dirname(dst))) {
                 // Cannot rename if destination path does not exist
-                printWithMode(`No such file or directory '${dstNames[idx]}'`);
+                printWithMode(`No such file or directory '${dst}'`);
             }
             else {
-                if (!fs.existsSync(dstNames[idx]) && !newNamesList.includes(dstNames[idx])) {
-                    printWithMode(`Renamed \x1b[37;1m${srcName}\x1b[0m to \x1b[37;1m${dstNames[idx]}\x1b[0m`);
-                    newNamesList.push(dstNames[idx]);
+                if (!fs.existsSync(dst) && !newNamesList.includes(dst)) {
+                    printWithMode(`Renamed \x1b[37;1m${src}\x1b[0m to \x1b[37;1m${dst}\x1b[0m`);
+                    newNamesList.push(dst);
                     successList.push(idx);
                 }
                 else {
-                    printWithMode(`Skipping rename of '${srcName}': '${dstNames[idx]}' already exists.`);
+                    printWithMode(`Skipping rename of '${src}': '${dst}' already exists.`);
                 }
             }
         });
@@ -164,6 +166,6 @@ function run () {
 }
 
 // Comment this when unit testing
-run();
+// run();
 // Uncomment below when unit testing
-// module.exports.run = run;
+module.exports.run = run;
