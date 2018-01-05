@@ -144,11 +144,19 @@ describe('mv-mover', function () {
             expect(returned).to.have.members([0, 1, 6]);
             expect(returned.length).to.eql(3);
 
-            // should also work when destination path exists but is different than source path
-            filesList = globby.sync(path.join(TEST_PATH, '*.jpeg'));
+            // should work when destination path exists but is different than source path
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '*.jpeg'));
             newFilesList = [ path.join('test', 'test-data2', path.basename(filesList[0])), path.join('test', 'test-data2', path.basename(filesList[1])) ];
             returned = this.myMover.commit(filesList, newFilesList);
             expect(returned.length).to.eql(2);
+
+            // should work when destination name has trailing '/' (it will be omitted)
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '$twodollars.js$$'));
+            newFilesList = [ path.join('test', 'test-data2', 'abc', '/') ];
+            returned = this.myMover.commit(filesList, newFilesList);
+            expect(returned.length).to.eql(1);
+            filesList = this.myParser.resolve(path.join('test', 'test-data2', 'abc'));
+            expect(filesList).to.have.members([ 'test/test-data2/abc' ]);
         });
 
         it('should return empty [] if no successful rename completed', function () {
@@ -178,13 +186,22 @@ describe('mv-mover', function () {
             // currently no file having the new filename.
             expect(globby.sync(newFilename).length).to.eql(0);
 
-            const returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
+            let returned = this.myMover.commit(filesList, newFilesList, null, this.myCallback);
             // Expects only one successful rename attempt
             expect(returned).to.eql([0]);
             expect(globby.sync(srcGlob)).to.have.members([ path.join(TEST_PATH, 'dotnames2.a.b') ]);
             expect(globby.sync(newFilename)).to.have.members([ path.join(TEST_PATH, 'dotnames.a.b.old') ]);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
             expect(globby.sync(starGlob)).to.not.have.members(allFiles);
+
+            // trailing '/' in destination name will be omitted
+            // So this rename will fail because destination already exists
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '$$onedollar.tm$'));
+            newFilesList = [ path.join(TEST_PATH, '^^twocarets.hi^^', '/') ];
+            returned = this.myMover.commit(filesList, newFilesList);
+            expect(returned.length).to.eql(0);
+            filesList = this.myParser.resolve(path.join(TEST_PATH, '$$onedollar.tm$'));
+            expect(filesList.length).to.eql(1);
         });
         it('should throw a TypeError if invalid argument type passed', function () {
             sinon.spy(this.myMover, 'commit');
