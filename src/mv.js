@@ -60,8 +60,8 @@ function createMv(parser, renamer, mover) {
             throw new TypeError("Invalid arguments. Glob patterns must be non-empty strings.");
         }
 
-        let srcPattern = src;
-        let dstPattern = dst;
+        const srcPattern = src;
+        const dstPattern = dst;
 
         filenames = _fetchFilenames(srcPattern);
         if (filenames.length) {
