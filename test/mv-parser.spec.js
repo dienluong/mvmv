@@ -132,6 +132,16 @@ describe('mv-parser', function () {
             globbyResult = globby.sync(pattern);
             expect(result).to.be.eql(globbyResult);
 
+            // Test pattern where path contains wildcards
+            pattern = path.join('*t', '?es?-**', '*.j???*');
+            result = this.myParser.resolve(pattern);
+            expect(result).to.have.members(this.fullnamesMap.get('jpeg').concat(this.fullnamesMap.get('js$$')));
+            expect(result).to.be.eql(globby.sync(pattern));
+            pattern = path.join('*t', '?es?-**', '*.txt');
+            result = this.myParser.resolve(pattern);
+            expect(result).to.have.members(this.fullnamesMap.get('txt').concat([ 'test/test-data2/abc.txt' ]));
+            expect(result).to.be.eql(globby.sync(pattern));
+
             // Test names containing parens
             pattern = path.join(TEST_PATH, ')Tpop(tarts');
             result = this.myParser.resolve(pattern);
@@ -193,7 +203,10 @@ describe('mv-parser', function () {
 
             // creates mock test folder and files
             mockFs({
-                'test/test-data': folderContent
+                'test/test-data': folderContent,
+                'test/test-data2': {
+                    'abc.txt': 'created by mock-fs'
+                }
             });
 
             this.myParser = parser.create();
