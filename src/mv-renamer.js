@@ -70,9 +70,7 @@ function createRenamer() {
             let srcQuestionMarkList = srcCaptureGroupsArray[nameIdx].getQuestionMark();
             let srcQuestionMarkIterator = srcQuestionMarkList && srcQuestionMarkList.length ? srcQuestionMarkList.entries() : null;
 
-            let end = dstGlobParts.length;
-            for (let partIdx = 0; partIdx < end; partIdx += 1) {
-                let destPart = dstGlobParts[partIdx];
+            for (const destPart of dstGlobParts) {
                 let srcGroup;
                 switch (destPart) {
                     case '*':
