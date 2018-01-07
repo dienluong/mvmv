@@ -431,14 +431,27 @@ describe('When the literal part is matched', function () {
             result = capture(['pop(tarts)TXT', ')Tpop(tarts'], 'pop(tarts)TXT');
             expect(result.length).to.eql(2);
             expect(result[0].hasMatch()).to.be.true;
-            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: 'pop(tarts)TXT', match: 'pop(tarts)TXT'});
             expect(result[0].getGroups().length).to.eql(1);
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: 'pop(tarts)TXT', match: 'pop(tarts)TXT'});
 
             result = capture([')whe(re(is)my)sweet()(pop((tarts))TXT'], ')whe(re(is)my)sweet()(pop((tarts))TXT');
             expect(result.length).to.eql(1);
             expect(result[0].hasMatch()).to.be.true;
-            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')whe(re(is)my)sweet()(pop((tarts))TXT', match: ')whe(re(is)my)sweet()(pop((tarts))TXT'});
             expect(result[0].getGroups().length).to.eql(1);
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')whe(re(is)my)sweet()(pop((tarts))TXT', match: ')whe(re(is)my)sweet()(pop((tarts))TXT'});
+
+            // Glob: contains\\\\backward\\slashes\\ (equals code 'contains\\\\\\\\backward\\\\slashes\\\\') should match contains\\backward\slashes\
+            result = capture(['contains\\\\backward\\slashes\\'], 'contains\\\\\\\\backward\\\\slashes\\\\');
+            expect(result.length).to.eql(1);
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[0].getGroups().length).to.eql(1);
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: 'contains\\\\\\\\backward\\\\slashes\\\\', match: 'contains\\\\backward\\slashes\\'});
+
+            result = capture([')mix\\(of)\\\\parens(and\\\\)sla(she(\\s)\\)'], ')mix\\\\(of)\\\\\\\\parens(and\\\\\\\\)sla(she(\\\\s)\\\\)');
+            expect(result.length).to.eql(1);
+            expect(result[0].hasMatch()).to.be.true;
+            expect(result[0].getGroups().length).to.eql(1);
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')mix\\\\(of)\\\\\\\\parens(and\\\\\\\\)sla(she(\\\\s)\\\\)', match: ')mix\\(of)\\\\parens(and\\\\)sla(she(\\s)\\)'})
         });
     });
 });

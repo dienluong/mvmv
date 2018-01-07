@@ -1,24 +1,20 @@
 'use strict';
 
 const glToRe  = require('glob-to-regexp');
-const groupsCollectionInterface = require('../src/captureGroupsCollectionInterface');
-
-// var path    = require('path');
-// var mm      = require('micromatch');
+const groupsCollectionInterface = require('../src/globGroupsCollectionInterface');
 
 /**
  * The module determines the match of each wildcard of the provided glob, applied to an array of strings.
  * @module englobbed
  */
 
-
 /**
- * For each element in names array (1st argument), return a captureGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
+ * For each element in names array (1st argument), return a globGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
  * Example of parts of a glob: "?omer.*" => Parts: 1) '?', 2) 'omer.', 3) '*'
  * @method capture
  * @param names {String[]} List of names
  * @param glob {String} The glob pattern to be applied to names
- * @return {captureGroupsCollection[]} An array of captureGroupsCollection objects. Returns null if invalid parameters or names list is empty.
+ * @return {globGroupsCollection[]} An array of globGroupsCollection objects. Returns null if invalid parameters or names list is empty.
  */
 function capture(names, glob) {
     if (!Array.isArray(names) || !names.length) {
@@ -29,20 +25,10 @@ function capture(names, glob) {
         return null;
     }
 
-    // Transform glob pattern to equivalent regex
-    // TODO: choose one of the two methods for adding capture groups
-    // let regex = glToRe(glob, {extended: true});
-    // regex = __addCaptureGroups(regex);
-    let regex = _convertToRegExWithCaptureGroups(glob);
-    // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
-    // console.log('Regex : ' + regex);
-    // console.log('Regex2: ' + regex2);
-    // console.log('Gl-to-Re:    ' + re);
-
     // For each names received, return an object containing the match for each part of the glob,
     return names.map(function buildCaptureGroupsCollection(name) {
-        let groupsObj = _captureGroupsCollectionFactory();
-        groupsObj.initGroups(regex);
+        let groupsObj = _globGroupsCollectionFactory();
+        groupsObj.initGroups(glob);
         groupsObj.buildGroups(name);
         return groupsObj;
     });
@@ -51,7 +37,8 @@ function capture(names, glob) {
 /**
  * Returns the different parts (literals, wildcards) of a glob pattern.
  * @param glob {String} Glob to extract the parts from
- * @param [options] {Object} options.collapse indicates whether consecutive * in glob pattern should collapse into a single *; default is false.
+ * @param [options] {Object} options.collapse: whether consecutive * in glob pattern should collapse into a single *;
+ *                                             default is false.
  * @return {String[]} The parts of the glob; empty array if glob is invalid (e.g. empty string)
  *                  Example: For glob 'abc*def' -> [ 'abc', '*', 'def' ]
  * TODO: Write test cases!
@@ -114,11 +101,12 @@ function _convertToRegExWithCaptureGroups(glob) {
                     break;
                 default:
                     // Work around a bug with glob-to-regexp.
-                    // The bug: a glob pattern <<bob\\pete>>, which matches bob\pete, would be converted to /^bob\\\\pete$/ which matchets bob\\pete.
-                    p = p.replace(/\\{2,}/g, '\\');
+                    // The bug: a glob pattern bob\\pete, which matches bob\pete, would be converted to /^bob\\\\pete$/ which matches bob\\pete.
+                    p = p.replace(/\\{2}/g, '\\');
                     // Escape all characters that must be escaped by using glob-to-regexp module
                     p = glToRe(p).source;
-
+//TODO: delete
+console.log(`_convertToRegEx source: ${p}`);
                     // Removes ^ and $ from the regexp source produced by glob-to-regexp
                     p = p.length > 2 ? p.slice(1, p.length - 1) : p;
                     return `(${p})`;
@@ -137,222 +125,39 @@ function _convertToRegExWithCaptureGroups(glob) {
 
 
 /**
- * Add capture groups to a regular expression.
- * Example: abc.123.*DEF --> (abc)(.)(123)(.*)(DEF)
- * @method __addCaptureGroups
- * @private
- * @param re {RegExp} The regular expression to process
- * @returns {RegExp} Regular expression with capture groups added to the various parts
- */
-function __addCaptureGroups(re) {
-    if (!re || (typeof re.source) !== 'string') {
-        return null;
-    }
-    // Only enclose in capture group '.' that is not part of regex "\." or ".*"
-    let tmpStr = re.source.replace(/\.(?!\*)/g, function encloseRegexDot(match, offset, source) {
-        // if "\." (a literal '.'), then do not enclose in capture group
-        if (offset && (source.charAt(offset - 1) === '\\')) {
-            return match;
-        }
-        // if ".*", then return, will enclose in capture group in a later step.
-        /* TO REMOVE.  NOT NEEDED anymore since we use (?!\*) negative look-ahead */
-        // if (source.charAt(offset + 1) === '*') {
-        //     return match;
-        // }
-
-        return (`(${match})`);
-    });
-    /*
-     console.log('tmpStr: ' + tmpStr);
-     */
-
-    // Enclose in capture group the regex '.*'
-    tmpStr = tmpStr.replace(/\.\*/g, '($&)');
-    /*
-     console.log('tmpStr: ' + tmpStr);
-     */
-
-    // Temporarily remove ^
-    let start = '';
-    if (tmpStr.charAt(0) === '^') {
-        tmpStr = tmpStr.slice(1);
-        start = '^';
-    }
-    // Temporarily remove $
-    let end = '';
-    if (tmpStr.charAt(tmpStr.length - 1) === '$') {
-        tmpStr = tmpStr.slice(0, tmpStr.length - 1);
-        end = '$';
-    }
-
-    // Enclose in capture group remaining substrings...
-    // Regex description: matches any number of characters, except * ( and ), that is not followed by ) or * (we don't want to match ".*" again)
-    tmpStr = tmpStr.replace(/([^\*\(\)]+(?![\*\)]))/g, '($&)');
-
-    tmpStr = start + tmpStr + end;
-
-    /*
-     console.log('tmpStr: ' + tmpStr);
-     */
-
-    /*
-     console.log('Gl-to-Re Mod: ' + re);
-     */
-
-    return new RegExp(tmpStr);
-}
-
-/**
- *
- * @method _countRepeatingChar
- * @private
- * @param str {String} String to search
- * @param wanted {String} Character to look for
- * @param options {Object}  options.start: starting index
- *                          options.direction: "left" | "right"
- * @returns {number} Number of successive occurrences of the character
- * @throws {Error} Error object
- */
-function _countRepeatingChar(str, wanted, options) {
-    let count = 0;
-
-    if (!options || (typeof options !== 'object')) {
-        throw new TypeError(`Error: 'options' must be a valid object.`);
-    }
-
-    const start = options.start;
-    const direction = options.direction;
-
-    if ((typeof str !== 'string') || (typeof wanted !== 'string')) {
-        throw new TypeError(`Error: search source and target must be strings.`);
-    }
-
-    if (!Number.isFinite(start) || (start < 0) || (start >= str.length)) {
-        throw new TypeError(`Error: starting index must be valid number.`);
-    }
-
-    if ((typeof direction !== 'string') || ((direction !== 'left') && (direction !== 'right'))) {
-        throw new TypeError(`Error: invalid direction.`);
-    }
-
-    const step = (direction === 'left') ? -1 : 1;
-
-    // search the string
-    for (let i = start; i >= 0 && i < str.length; i += step) {
-        if (str.charAt(i) === wanted) {
-            count += 1;
-        }
-        else {
-            // returns as soon as chararacter is not 'wanted'
-            return count;
-        }
-    }
-
-    return count;
-}
-
-/**
- *
- * @method _findCaptureParensInRegExp
- * @private
- * @param re {RegExp}
- * @param start {Number}
- * @return {Number[]}
- */
-function _findCaptureParensInRegExp(re, start) {
-    if (!re || ((typeof re.source) !== 'string')) { return []; }
-
-    if (!Number.isFinite(start)) { return []; }
-
-    let source = re.source;
-    let open, closing;
-    let cursor;
-
-    for (let i = start; i < source.length; i += 1) {
-        cursor = source.indexOf('(', i);
-        if (cursor === -1) { return []; }
-
-        let count = _countRepeatingChar(source, '\\', { start: cursor - 1, direction: 'left' });
-        // If the number of repeating \ is even, then we have literal '\' char in the regexp.
-        // Consequently, the char on its right is not escaped.
-        // So if the '(' found was not escaped, it is a capture paren; next is to look for the matching closing paren ')'
-        if ((count % 2) === 0) {
-            open = cursor;
-            for (let j = open + 1; j < source.length; j += 1 ) {
-                cursor = source.indexOf(')', j);
-                if (cursor === -1) { return []; }
-
-                count = _countRepeatingChar(source, '\\', { start: cursor - 1, direction: 'left' });
-                // if ')' found is an capture group closing paren, i.e. not escaped by \, then return the results;
-                if ((count % 2) === 0) {
-                    closing = cursor;
-                    return [open, closing];
-                }
-                else {
-                    // if ')' found is a literal ')' char, then continue search at cursor...
-                    j = cursor;
-                }
-            }
-        }
-        else {
-            // if '(' found is a literal '(' char, then continue search at cursor...
-            i = cursor;
-        }
-    }
-
-    return [];
-}
-
-/**
- * Extracts the expression inside capture groups of the received regular expression and returns them in an array
- * @method _extractCaptureGroups
- * @private
- * @param re {RegExp} The regular expression to process
- * @returns {String[]} List of extracted capture groups
- */
-function _extractCaptureGroups(re) {
-    if (!re || (typeof re.source) !== 'string') {
-        return [];
-    }
-    let source = re.source;
-    let captureGroups = [];
-    let parensIndexes = _findCaptureParensInRegExp(re, 0);
-    while (parensIndexes.length > 1) {
-        // grab the regex between the identified capture group parens
-        captureGroups.push(source.slice(parensIndexes[0]+1, parensIndexes[1]));
-        // Search next capture group parens
-        parensIndexes = _findCaptureParensInRegExp(re, parensIndexes[1] + 1);
-    }
-
-    return captureGroups;
-}
-
-
-/**
- * Returns a captureGroupsCollection object.
- * @return {captureGroupsCollection} Object implementing the captureGroupsCollection interface.
+ * Returns a globGroupsCollection object.
+ * @return {globGroupsCollection} Object implementing the globGroupsCollection interface.
  * @private
  */
-function _captureGroupsCollectionFactory() {
+function _globGroupsCollectionFactory() {
     /**
      * @method initGroups
-     * @param regex {RegExp} Regular expression with capture groups
-     * @param text
+     * @param glob {String} Glob pattern
+     * @param [text] {String} The text to attempt to match with the glob pattern.
      */
-    function initGroups(regex, text) {
+    function initGroups(glob, text) {
         if (this._groups) {
             // Do nothing if already groups already built
             return;
         }
 
-        if (!regex) {
+        if (typeof glob !== 'string') {
             return;
         }
         else {
-            this._regexWithCapture = regex;
+            // Transform glob pattern to equivalent regex
+            // TODO: choose one of the two methods for adding capture groups
+            // let regex = glToRe(glob, {extended: true});
+            // regex = __addCaptureGroups(regex);
+            // let regex = _convertToRegExWithCaptureGroups(glob);
+            // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
 
-            // Produce an array of all capture groups from a regex
-            this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
+            this._regexWithCapture = _convertToRegExWithCaptureGroups(glob);
+            // Produce an array of all groups from the glob pattern
+            this._globGroupArray = deconstruct(glob, {collapse: true});
+
+            //TODO: DELETE
+            // this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
         }
 
         if (text) {
@@ -361,9 +166,9 @@ function _captureGroupsCollectionFactory() {
     }
 
     /**
-     * Builds an array of group objects for each capture group in regex
-     * @param text {String} The text to apply the regex on.
-     * @param [regex] {String} regex used for math provided text
+     * Builds an array of group objects for each group of the glob pattern
+     * @param text {String} The text to attempt to match with the glob pattern.
+     * @param [glob] {String} Glob pattern
      * @return {Object[]} - If the glob matches the given text, then each element of the array is an object
      *                          for each "group" of the glob pattern; Example for glob 'h*':
      *                              {type: 'literal', pattern: 'h', match: 'h'}
@@ -371,17 +176,17 @@ function _captureGroupsCollectionFactory() {
      *                 - If there is no match, then array is empty;
      *                 - If there's an error, array contains an Error object.
      */
-    function buildGroups(text, regex) {
+    function buildGroups(text, glob) {
         if (typeof text !== 'string') {
             this._groups = [ new TypeError('Invalid type! Expects a string.') ];
             return this._groups;
         }
 
-        if (regex) {
-            this.initGroups(regex);
+        if (glob) {
+            this.initGroups(glob);
         }
 
-        if (!Array.isArray(this._regexCaptureGroupArray) || !this._regexWithCapture) {
+        if (!Array.isArray(this._globGroupArray) || !this._regexWithCapture) {
             this._groups = [ new Error('Build failed! Object not initialized.') ];
             return this._groups;
         }
@@ -395,8 +200,8 @@ function _captureGroupsCollectionFactory() {
 
         // String.match() returns the entire match *and* the capture group matches;
         // so its array length must be > then the length of the capture groups array
-        if (matches.length <= this._regexCaptureGroupArray.length) {
-            this._groups = [ new Error(`Error: length mismatch! matches: ${matches.length}, groups: ${this._regexCaptureGroupArray.length}`) ];
+        if (matches.length <= this._globGroupArray.length) {
+            this._groups = [ new Error(`Error: length mismatch! matches: ${matches.length}, groups: ${this._globGroupArray.length}`) ];
             return this._groups;
         }
 
@@ -405,19 +210,22 @@ function _captureGroupsCollectionFactory() {
         this._questionMark = null;
         this._asterisk = null;
 
-        this._regexCaptureGroupArray.forEach(function (g, idx) {
+        this._globGroupArray.forEach(function (g, idx) {
             // matches[idx + 1] because whole match is first element of the array of matches
-            if (g === '.' || g === '.*') {
-                let glob = (g === '.') ? '?' : '*';
+            if (g === '?' || g === '*') {
+                //TODO: DELETE
+                // let glob = (g === '.') ? '?' : '*';
                 this._groups.push({
                     type: "wildcard",
-                    pattern: glob,
+                    pattern: g,
                     match: matches[idx + 1]
                 });
             }
             else {
+                //TODO DELETE
+                // g = g.replace(/\\{2}/, '\\');
                 // Remove escape character \ from the regex pattern.
-                g = g.replace(/\\/g, '');
+                // g = g.replace(/\\/g, '');
                 this._groups.push({
                     type: "literal",
                     pattern: g,
@@ -492,21 +300,21 @@ function _captureGroupsCollectionFactory() {
         }
     }
 
-    const captureGroupsCollection = Object.assign({
+    const globGroupsCollection = Object.assign({
         _regexWithCapture: null,
-        _regexCaptureGroupArray: null,
+        _globGroupArray: null,
         _groups: null,          // array of all groups
         _asterisk: null,        // array of groups for * wildcard
         _questionMark: null,    // array of groups for ? wildcard
     }, groupsCollectionInterface);
-    captureGroupsCollection.initGroups = initGroups;
-    captureGroupsCollection.buildGroups = buildGroups;
-    captureGroupsCollection.getGroups = getGroups;
-    captureGroupsCollection.hasMatch = hasMatch;
-    captureGroupsCollection.getAsterisk = getAsterisk;
-    captureGroupsCollection.getQuestionMark = getQuestionMark;
+    globGroupsCollection.initGroups = initGroups;
+    globGroupsCollection.buildGroups = buildGroups;
+    globGroupsCollection.getGroups = getGroups;
+    globGroupsCollection.hasMatch = hasMatch;
+    globGroupsCollection.getAsterisk = getAsterisk;
+    globGroupsCollection.getQuestionMark = getQuestionMark;
 
-    return captureGroupsCollection;
+    return globGroupsCollection;
 }
 
 module.exports.capture = capture;
