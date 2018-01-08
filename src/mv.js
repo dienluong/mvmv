@@ -60,8 +60,12 @@ function createMv(parser, renamer, mover) {
             throw new TypeError("Invalid arguments. Glob patterns must be non-empty strings.");
         }
 
-        const srcPattern = src;
-        const dstPattern = dst;
+        // Normalize the path separators:
+        // 1. Convert Windows path separators to posix separator
+        //    This is required for consistency because the glob module we rely on always uses posix separator.
+        // 2. Collapse multiple '/' into a single one.
+        const srcPattern = process.platform === 'win32' ? src.replace(/\\/g, '/').replace(/\/+/g, '/') : src;
+        const dstPattern = process.platform === 'win32' ? dst.replace(/\\/g, '/').replace(/\/+/g, '/') : dst;
 
         filenames = _fetchFilenames(srcPattern);
         if (filenames.length) {
