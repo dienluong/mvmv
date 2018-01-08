@@ -2,10 +2,6 @@
 const englobbed     = require('../src/en-globbed');
 
 function createRenamer() {
-    return {
-        computeName: computeName
-    };
-
     /**
      * Builds new names based on provided glob patterns.
      * @param names {String[] | string} List of original names to compute new names for, or a single name (string)
@@ -44,8 +40,8 @@ function createRenamer() {
             throw new Error('Unexpected error while parsing glob.');
         }
 
-        let srcWildcardsCount = countWildcards(srcGlobParts);
-        let dstWildcardsCount = countWildcards(dstGlobParts);
+        let srcWildcardsCount = _countWildcards(srcGlobParts);
+        let dstWildcardsCount = _countWildcards(dstGlobParts);
 
         // Check if destination glob has more * and/or ? wildcards than source glob does...
         if ((dstWildcardsCount.stars > srcWildcardsCount.stars) || (dstWildcardsCount.questions > srcWildcardsCount.questions)) {
@@ -97,18 +93,23 @@ function createRenamer() {
 
     /**
      * Returns the count of * and ? wildcards found in an array of strings.
+     * @private
      * @param arr {String[]} The array to search
-     * @return {Object} stars: number of * ; questions: number of ?
+     * @returns {Object} stars: number of * ; questions: number of ?
      */
-    function countWildcards(arr) {
+    function _countWildcards(arr) {
         let numStars = arr.filter((str) => str === '*').length;
         let numQuestions = arr.filter((str) => str === '?').length;
 
-        return {
+        return Object.freeze({
             stars : numStars,
             questions: numQuestions
-        };
+        });
     }
+
+    return {
+        computeName: computeName
+    };
 }
 
 module.exports.create = createRenamer;

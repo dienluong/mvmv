@@ -3,10 +3,6 @@
 const fs = require('fs');
 
 function createMover() {
-    return {
-        commit: commit
-    };
-
     /**
      * Returns as soon as error encountered.
      * @param filesList {String[]} List of files to rename
@@ -51,6 +47,10 @@ function createMover() {
 
         return successIndexes;
     }
+
+    return {
+        commit: commit
+    };
 }
 
 module.exports.create = createMover;
