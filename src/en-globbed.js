@@ -25,7 +25,7 @@ function capture(names, glob) {
         return null;
     }
 
-    // For each names received, return an object containing the match for each part of the glob,
+    // For each names received, return an object of type 'globGroupsCollection' containing the match for each part of the glob
     return names.map(function buildCaptureGroupsCollection(name) {
         let groupsObj = _globGroupsCollectionFactory();
         groupsObj.initGroups(glob);
@@ -105,8 +105,6 @@ function _convertToRegExWithCaptureGroups(glob) {
                     p = p.replace(/\\{2}/g, '\\');
                     // Escape all characters that must be escaped by using glob-to-regexp module
                     p = glToRe(p).source;
-//TODO: delete
-console.log(`_convertToRegEx source: ${p}`);
                     // Removes ^ and $ from the regexp source produced by glob-to-regexp
                     p = p.length > 2 ? p.slice(1, p.length - 1) : p;
                     return `(${p})`;
@@ -191,7 +189,6 @@ function _globGroupsCollectionFactory() {
             return this._groups;
         }
 
-        // let matches = path.basename(p).match(re);
         let matches = text.match(this._regexWithCapture);
         if (!matches) {
             this._groups = [];
@@ -215,39 +212,34 @@ function _globGroupsCollectionFactory() {
             if (g === '?' || g === '*') {
                 //TODO: DELETE
                 // let glob = (g === '.') ? '?' : '*';
-                this._groups.push({
+                this._groups.push(Object.freeze({
                     type: "wildcard",
                     pattern: g,
                     match: matches[idx + 1]
-                });
+                }));
             }
             else {
                 //TODO DELETE
                 // g = g.replace(/\\{2}/, '\\');
                 // Remove escape character \ from the regex pattern.
                 // g = g.replace(/\\/g, '');
-                this._groups.push({
+                this._groups.push(Object.freeze({
                     type: "literal",
                     pattern: g,
                     match: matches[idx + 1]
-                });
+                }));
             }
         }, this);
 
-        return this._groups;
-        // console.log(matchPerCG);
-        // let match2 = p.match(re2);
-        // console.log("Micromatch:\n");
-        // console.log(match2);
-        // console.log('\n');
-    }
-
-    function getGroups() {
         return this._groups;
     }
 
     function hasMatch() {
         return (this._groups !== null && this._groups.length !== 0 && !(this._groups[0] instanceof Error));
+    }
+
+    function getGroups() {
+        return this._groups;
     }
 
     /**
@@ -310,9 +302,9 @@ function _globGroupsCollectionFactory() {
     globGroupsCollection.initGroups = initGroups;
     globGroupsCollection.buildGroups = buildGroups;
     globGroupsCollection.getGroups = getGroups;
-    globGroupsCollection.hasMatch = hasMatch;
     globGroupsCollection.getAsterisk = getAsterisk;
     globGroupsCollection.getQuestionMark = getQuestionMark;
+    globGroupsCollection.hasMatch = hasMatch;
 
     return globGroupsCollection;
 }

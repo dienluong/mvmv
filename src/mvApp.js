@@ -28,7 +28,6 @@ const interactiveMover = {
         src.forEach(function confirmAndCommit(oldName, idx) {
             let newName = dst[idx];
             const answerBool = readlineSync.keyInYN(`Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
-// console.log('readlineSync: ' + answerBool);
             if (answerBool) {
                 let resultArr = Mover.commit([oldName], [newName], null, (err) => {
                     if (err) {

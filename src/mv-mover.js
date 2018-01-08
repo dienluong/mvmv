@@ -41,7 +41,6 @@ function createMover() {
                 }
             }
             catch (e) {
-                //TODO: return a Map where key=idx, value=error?
                 error = new Error('Failed rename commit. ' + e.message);
             }
 

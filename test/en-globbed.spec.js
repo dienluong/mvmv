@@ -451,7 +451,7 @@ describe('When the literal part is matched', function () {
             expect(result.length).to.eql(1);
             expect(result[0].hasMatch()).to.be.true;
             expect(result[0].getGroups().length).to.eql(1);
-            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')mix\\\\(of)\\\\\\\\parens(and\\\\\\\\)sla(she(\\\\s)\\\\)', match: ')mix\\(of)\\\\parens(and\\\\)sla(she(\\s)\\)'})
+            expect(result[0].getGroups()[0]).to.eql({type: 'literal', pattern: ')mix\\\\(of)\\\\\\\\parens(and\\\\\\\\)sla(she(\\\\s)\\\\)', match: ')mix\\(of)\\\\parens(and\\\\)sla(she(\\s)\\)'});
         });
     });
 });

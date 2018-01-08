@@ -5,7 +5,8 @@ const captureGroupsCollectionInterface = {
     buildGroups: function() {},
     getGroups: function() {},
     getAsterisk: function() {},
-    getQuestionMark: function() {}
+    getQuestionMark: function() {},
+    hasMatch: function() {}
 };
 
 module.exports = captureGroupsCollectionInterface;
