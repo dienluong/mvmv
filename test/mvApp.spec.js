@@ -120,6 +120,17 @@ describe('myApp', function () {
             expect(globby.sync(srcGlob)).to.be.empty;
             expect(globby.sync(dstGlob).length).to.eql(2);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
+
+            // Cases with Windows path separator '\'
+            srcGlob = 'test\\\\test-data/dot*.?.*';
+            dstGlob = 'test/test-data2\\bot*.?';
+            expect(globby.sync(srcGlob).length).to.eql(4);
+            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
+            mvApp.run();
+            expect(globby.sync(srcGlob)).to.be.empty;
+            expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+            expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 4 file(s)\x1b[0m`)).to.be.true;
         });
 
         it('should display a message if destination already exists', function () {
@@ -171,6 +182,16 @@ describe('myApp', function () {
             mvApp.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
+            expect(commander.outputHelp.called).to.be.false;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+
+            console.log.reset();
+            commander.outputHelp.reset();
+            srcGlob = 'test\\test-data\\\\';
+            dstGlob = 'test\\\\test-data2\\';
+            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
+            mvApp.run();
+            expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
