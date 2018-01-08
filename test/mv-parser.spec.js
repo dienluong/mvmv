@@ -14,6 +14,20 @@ const TEST_PATH = path.join('test', 'test-data');
 
 describe('mv-parser', function () {
     describe('resolve()', function () {
+        it('should throw an Error if glob pattern argument is not a string', function () {
+            let pattern = 123;
+
+            try {
+                this.myParser.resolve(pattern);
+            }
+            catch (e) {
+                expect(e).to.be.instanceof(TypeError)
+                .and.have.property('message', 'Glob pattern must be a string.');
+            }
+
+            expect(this.myParser.resolve.alwaysThrew('TypeError')).to.be.true;
+        });
+
         it('should return [] if no file matched', function () {
             let pattern = path.join(TEST_PATH, '*.bob');
             let result = this.myParser.resolve(pattern);
@@ -36,18 +50,6 @@ describe('mv-parser', function () {
             expect(result).to.be.eql(globby.sync(pattern));
 
             expect(this.myParser.resolve.alwaysReturned([])).to.be.true;
-
-            // Test paths using \ as separator (Windows)
-            pattern = 'test\\test-data\\)Tpop(tarts';
-            result = this.myParser.resolve(pattern);
-            if (process.platform === 'win32') {
-                expect(result.length).to.eql(1);
-            }
-            else {
-                expect(result).to.be.empty;
-            }
-
-            expect(result).to.be.eql(globby.sync(pattern));
         });
 
         it('should return array of file names matching glob pattern', function () {
@@ -153,13 +155,33 @@ describe('mv-parser', function () {
             expect(result.length).to.eql(1);
             expect(result).to.have.members([ this.fullnamesMap.get('parens')[1] ]);
             expect(result).to.be.eql(globby.sync(pattern));
+
+            // Test paths using \ as separator (Windows)
+            pattern = 'test\\\\test-data\\';
+            result = this.myParser.resolve(pattern);
+            // Expect empty result because nodir option is set to true
+            expect(result.length).to.eql(0);
+            pattern = 'test\\\\\\test-data\\\\)Tpop(tarts';
+            result = this.myParser.resolve(pattern);
+            expect(result.length).to.eql(1);
+            expect(result).to.be.eql(globby.sync(pattern));
+
+            // Test with / separator
+            pattern = 'test/test-data//';
+            result = this.myParser.resolve(pattern);
+            // Expect empty result because nodir option is set to true
+            expect(result.length).to.eql(0);
+            pattern = 'test//test-data*///*.txt';
+            result = this.myParser.resolve(pattern);
+            expect(result.length).to.eql(3);
+            expect(result).to.eql(globby.sync(pattern));
         });
 
 
         /* ----------------------------------------------------- */
         /* ------------ before() and after() section ----------- */
         /* ----------------------------------------------------- */
-        before(function () {
+        beforeEach(function () {
             const g = new FilenameGenerator();
             const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
             let folderContent = {};
@@ -213,7 +235,7 @@ describe('mv-parser', function () {
             sinon.spy(this.myParser, 'resolve');
         });
 
-        after(function () {
+        afterEach(function () {
             mockFs.restore();
             this.myParser.resolve.restore();
         });

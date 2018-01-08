@@ -20,6 +20,14 @@ function createParser () {
          * @throws {Error} An Error object
          */
         resolve: function (pattern) {
+            if (typeof pattern !== 'string') {
+                throw new TypeError('Glob pattern must be a string.');
+            }
+
+            if (process.platform === 'win32') {
+                pattern = pattern.replace(/\\/g, '/');
+            }
+
             //returns array of filenames (string) matching the pattern, or empty array if no match
             let results = glob.sync(pattern, options);
             return results;
