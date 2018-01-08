@@ -90,33 +90,52 @@ describe('mv', function () {
             });
 
             it('should proceed renaming files based on provided globs and return the number of successful renames', function () {
-                const srcGlob = path.join(TEST_PATH, '*.up^');
-                const dstGlob = path.join(TEST_PATH, '*.z..');
-                const dstFiles = globby.sync(dstGlob).concat(
+                let srcGlob = path.join(TEST_PATH, '*.up^');
+                let dstGlob = path.join(TEST_PATH, '*.z..');
+                let dstFiles = globby.sync(dstGlob).concat(
                     globby.sync(srcGlob).map(function (filename) {
                         return filename.replace(/\.up\^$/, '.z..');
                     }));
 
-                const result = this.myMv.exec(srcGlob, dstGlob);
+                let result = this.myMv.exec(srcGlob, dstGlob);
 
                 // Asserts that original filenames no longer present after rename
                 expect(globby.sync(srcGlob)).to.be.empty;
                 expect(globby.sync(dstGlob).length).to.eql(4);
                 expect(globby.sync(dstGlob)).to.have.members(dstFiles);
                 expect(result).to.eql(2);
+
+                // Cases with Windows path separator '\'
+                srcGlob = 'test\\test-data\\\\dot*.?.*';
+                dstGlob = 'test\\\\test-data2\\bot*.?';
+                expect(globby.sync(srcGlob).length).to.eql(4);
+                expect(globby.sync('test/test-data2/*')).to.be.empty;
+                result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
+                expect(result).to.eql(4);
+                expect(globby.sync(srcGlob)).to.be.empty;
+                expect(globby.sync('test/test-data2/*').length).to.eql(4);
+                expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+                expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
             });
 
             it('should return null if no source file found, given the source glob', function () {
-                const srcGlob = path.join(TEST_PATH, '*.missing');
-                const dstGlob = path.join(TEST_PATH, '*.txt');
+                let srcGlob = path.join(TEST_PATH, '*.missing');
+                let dstGlob = path.join(TEST_PATH, '*.txt');
                 const dstFiles = globby.sync(dstGlob);
 
-                const result = this.myMv.exec(srcGlob, dstGlob);
+                let result = this.myMv.exec(srcGlob, dstGlob);
 
                 expect(result).to.be.null;
                 // Asserts that original filenames remain after operation
                 expect(globby.sync(srcGlob).length).to.eql(0);
                 expect(globby.sync(dstGlob)).to.have.members(dstFiles);
+
+                // Case with Windows path separator '\'
+                srcGlob = 'test\\\\test-data2\\\\';
+                dstGlob = 'test\\test-data\\';
+                result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
+                // Expect null because Mv only processes files, not folders.
+                expect(result).to.be.null;
             });
         });
 
@@ -164,7 +183,8 @@ describe('mv', function () {
 
             // creates mock test folder and files
             mockFs({
-                'test/test-data': folderContent
+                'test/test-data': folderContent,
+                'test/test-data2': {}
             });
 
             sinon.spy(this.myParser, "resolve");
