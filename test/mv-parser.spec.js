@@ -159,11 +159,18 @@ describe('mv-parser', function () {
             // Test paths using \ as separator (Windows)
             pattern = 'test\\\\test-data\\';
             result = this.myParser.resolve(pattern);
-            // Expect empty result because nodir option is set to true
+            // Linux/Mac: Expect empty result because file 'test\\test-data\' does not exist
+            // Windows: Expect empty result because nodir option is set to true
             expect(result.length).to.eql(0);
             pattern = 'test\\\\\\test-data\\\\)Tpop(tarts';
             result = this.myParser.resolve(pattern);
-            expect(result.length).to.eql(1);
+            if (process.platform === 'win32') {
+                expect(result.length).to.eql(1);
+            }
+            else {
+                expect(result.length).to.eql(0);
+            }
+
             expect(result).to.be.eql(globby.sync(pattern));
 
             // Test with / separator

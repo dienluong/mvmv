@@ -108,14 +108,27 @@ describe('mv', function () {
                 // Cases with Windows path separator '\'
                 srcGlob = 'test\\test-data\\\\dot*.?.*';
                 dstGlob = 'test\\\\test-data2\\bot*.?';
-                expect(globby.sync(srcGlob).length).to.eql(4);
+                if (process.platform === 'win32') {
+                    expect(globby.sync(srcGlob).length).to.eql(4);
+                }
+                else {
+                    expect(globby.sync(srcGlob).length).to.eql(0);
+                }
                 expect(globby.sync('test/test-data2/*')).to.be.empty;
                 result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
-                expect(result).to.eql(4);
-                expect(globby.sync(srcGlob)).to.be.empty;
-                expect(globby.sync('test/test-data2/*').length).to.eql(4);
-                expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
-                expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
+                if (process.platform === 'win32') {
+                    expect(result).to.eql(4);
+                    expect(globby.sync(srcGlob)).to.be.empty;
+                    expect(globby.sync('test/test-data2/*').length).to.eql(4);
+                    expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+                    expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
+                }
+                else {
+                    // On Linux/Mac: there is no file matching 'test\test-data\\dot*.?.*'
+                    expect(result).to.be.null;
+                    expect(globby.sync('test/test-data2/*')).to.be.empty;
+                }
+
             });
 
             it('should return null if no source file found, given the source glob', function () {
@@ -134,7 +147,8 @@ describe('mv', function () {
                 srcGlob = 'test\\\\test-data2\\\\';
                 dstGlob = 'test\\test-data\\';
                 result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
-                // Expect null because Mv only processes files, not folders.
+                // Linux/Mac: Expect null because no file matches 'test\\test-data2\\'
+                // Windows: Expect null because Mv only processes files, not folders ('test\\test-data2\\' matches folder test-data2.
                 expect(result).to.be.null;
             });
         });
