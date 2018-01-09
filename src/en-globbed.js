@@ -132,35 +132,39 @@ function _globGroupsCollectionFactory() {
      * @method initGroups
      * @param glob {String} Glob pattern
      * @param [text] {String} The text to attempt to match with the glob pattern.
+     * @return {Boolean} true: init completed; false: init aborted
      */
     function initGroups(glob, text) {
         if (this._groups) {
-            // Do nothing if already groups already built
-            return;
+            // Do nothing if groups already built
+            // Allowing initialization when groups already built would risk making
+            // the internally saved regex and glob become unrelated to the group's actual content.
+            return false;
         }
 
         if (typeof glob !== 'string') {
-            return;
+            return false;
         }
-        else {
-            // Transform glob pattern to equivalent regex
-            // TODO: choose one of the two methods for adding capture groups
-            // let regex = glToRe(glob, {extended: true});
-            // regex = __addCaptureGroups(regex);
-            // let regex = _convertToRegExWithCaptureGroups(glob);
-            // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
 
-            this._regexWithCapture = _convertToRegExWithCaptureGroups(glob);
-            // Produce an array of all groups from the glob pattern
-            this._globGroupArray = deconstruct(glob, {collapse: true});
+        // Transform glob pattern to equivalent regex
+        // TODO: choose one of the two methods for adding capture groups
+        // let regex = glToRe(glob, {extended: true});
+        // regex = __addCaptureGroups(regex);
+        // let regex = _convertToRegExWithCaptureGroups(glob);
+        // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
 
-            //TODO: DELETE
-            // this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
-        }
+        this._regexWithCapture = _convertToRegExWithCaptureGroups(glob);
+        // Produce an array of all groups from the glob pattern
+        this._globGroupArray = deconstruct(glob, {collapse: true});
+
+        //TODO: DELETE
+        // this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
 
         if (text) {
             this.buildGroups(text);
         }
+
+        return true;
     }
 
     /**
