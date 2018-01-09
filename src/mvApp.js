@@ -9,8 +9,6 @@ const commandLine   = require('commander');
 const Mv            = require('../src/mv');
 const Mover         = require('../src/mv-mover').create();
 
-let currentMode = '';
-
 const defaultMover = {
     commit: function commit(src, dst) {
         return Mover.commit(src, dst, null, (err) => {
@@ -96,15 +94,11 @@ const verboseMover = {
     }
 };
 
-function printWithMode(message) {
-    let mode = '';
-    if (currentMode === 'Simulate') {
-        mode = `[${currentMode}] `;
-    }
-    message = mode + message;
-
-    console.log(message);
+function _printWithPrefix(prefix, message) {
+    console.log(prefix + message);
 }
+
+let printWithMode;
 
 function run () {
     let myMover = defaultMover;
@@ -130,17 +124,16 @@ function run () {
         return;
     }
 
-    if (commandLine.simulate) {
-        currentMode = 'Simulate';
-        myMover = simulateMover;
+    printWithMode = _printWithPrefix.bind(null, '');
+    if (commandLine.verbose) {
+        myMover = verboseMover;
     }
     else if (commandLine.interactive) {
-        currentMode = 'Interactive';
         myMover = interactiveMover;
     }
-    else if (commandLine.verbose) {
-        currentMode = 'Verbose';
-        myMover = verboseMover;
+    else if (commandLine.simulate) {
+        myMover = simulateMover;
+        printWithMode = _printWithPrefix.bind(null, '[Simulate] ');
     }
 
     const srcGlob = commandLine.args[0];
