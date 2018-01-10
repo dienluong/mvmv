@@ -2,7 +2,7 @@
   "name": "mvjs",
   "version": "1.0.0",
   "description": "Shell script for batch renaming of files.",
-  "main": "src/mvApp.js",
+  "main": "src/mvjs.js",
   "dependencies": {
     "commander": "latest",
     "glob": "^7.1.2",
@@ -25,7 +25,7 @@
     "test": "mocha"
   },
   "bin": {
-    "mvjs": "./src/mvApp.js"
+    "mvjs": "./src/mvjs.js"
   },
   "author": "Dien Luong",
   "license": "ISC"

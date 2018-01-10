@@ -1,6 +1,6 @@
 'use strict';
 
-let mvApp           = require('../src/mvApp');
+let mvjs           = require('../src/mvjs');
 let commander       = require('commander');
 const readlineSync  = require('readline-sync');
 
@@ -14,12 +14,12 @@ const sinon         = require('sinon');
 const TEST_PATH     = path.join('test', 'test-data');
 
 /**
- * Resets the 'commander' module by reloading it, both in mvApp module and in this test module.
+ * Resets the 'commander' module by reloading it, both in mvjs module and in this test module.
  */
 function reloadApp() {
-    delete require.cache[ require.resolve('../src/mvApp') ];
+    delete require.cache[ require.resolve('../src/mvjs') ];
     delete require.cache[ require.resolve('commander') ];
-    mvApp       = require('../src/mvApp');
+    mvjs       = require('../src/mvjs');
     commander   = require('commander');
 }
 
@@ -30,38 +30,38 @@ describe('myApp', function () {
             // let stdoutWriteStub = sinon.stub(process.stdout, 'write');
             // stdoutWriteStub.returns(true);
 
-            process.argv = [process.execPath, 'mvApp.js'];
+            process.argv = [process.execPath, 'mvjs.js'];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
-            mvApp.run();
+            mvjs.run();
             expect(commander.outputHelp.called).to.be.true;
             commander.outputHelp.restore();
 
-            process.argv = [process.execPath, 'mvApp.js', 'a.file'];
+            process.argv = [process.execPath, 'mvjs.js', 'a.file'];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
-            mvApp.run();
+            mvjs.run();
             expect(commander.outputHelp.called).to.be.true;
             commander.outputHelp.restore();
 
-            process.argv = [process.execPath, 'mvApp.js', '--verbose'];
+            process.argv = [process.execPath, 'mvjs.js', '--verbose'];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
-            mvApp.run();
+            mvjs.run();
             expect(commander.outputHelp.called).to.be.true;
             commander.outputHelp.restore();
 
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', 'a.file'];
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', 'a.file'];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
-            mvApp.run();
+            mvjs.run();
             expect(commander.outputHelp.called).to.be.true;
             commander.outputHelp.restore();
 
-            process.argv = [process.execPath, 'mvApp.js', '--interaktiv', path.join(TEST_PATH, '*.jpeg'), path.join(TEST_PATH, '*.jpg')];
+            process.argv = [process.execPath, 'mvjs.js', '--interaktiv', path.join(TEST_PATH, '*.jpeg'), path.join(TEST_PATH, '*.jpg')];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
-            mvApp.run();
+            mvjs.run();
             expect(commander.outputHelp.called).to.be.true;
             commander.outputHelp.restore();
 
@@ -79,9 +79,9 @@ describe('myApp', function () {
             expect(globby.sync(srcGlob).length).to.eql(2);
             expect(globby.sync(dstGlob).length).to.eql(2);
 
-            // Simulate command: node mvApp.js <src> <dst>
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            // Simulate command: node mvjs.js <src> <dst>
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob).length).to.eql(0);
             expect(globby.sync(dstGlob).length).to.eql(4);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length);
@@ -93,8 +93,8 @@ describe('myApp', function () {
             dstGlob = path.join('test', 'test-data2', '*.png');
             expect(globby.sync(srcGlob).length).to.eql(2);
             expect(globby.sync(dstGlob).length).to.eql(0);
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob).length).to.eql(0);
             expect(globby.sync(dstGlob).length).to.eql(2);
             expect(globby.sync(starGlob).length).to.eql(allFiles.length - 2);
@@ -106,8 +106,8 @@ describe('myApp', function () {
             srcGlob = path.join(TEST_PATH, '$$twodollars.js$$');
             expect(globby.sync(srcGlob).length).to.eql(1);
             dstGlob = path.join('test', 'test-data2', 'bob', '/');
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
             expect(globby.sync(path.join('test', 'test-data2', 'bob')).length).to.eql(1);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
@@ -115,8 +115,8 @@ describe('myApp', function () {
             // Cases where wildcards are used in paths
             srcGlob = path.join('t???', 'test-d*ta**', '*.js');
             dstGlob = path.join('test', 't???-dat**2', '*.es6');
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
             expect(globby.sync(dstGlob).length).to.eql(2);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
@@ -125,8 +125,8 @@ describe('myApp', function () {
             srcGlob = 'test\\\\test-data/dot*.?.*';
             dstGlob = 'test/test-data2\\bot*.?';
             expect(globby.sync(srcGlob).length).to.eql(4);
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
             expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
             expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
@@ -137,8 +137,8 @@ describe('myApp', function () {
             // Case where destination file already exists: rename should abort
             let srcGlob = path.join(TEST_PATH, '^onecaret.up^');
             let dstGlob = path.join(TEST_PATH, '^^onecaret.up^');
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`Skipping rename of '${srcGlob}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
             expect(globby.sync(srcGlob).length).to.eql(1);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
@@ -149,8 +149,8 @@ describe('myApp', function () {
             expect(srcFiles.length).to.eql(2);
             dstGlob = path.join(TEST_PATH, 'newName.jpg');
             expect(globby.sync(dstGlob).length).to.be.empty;
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`Skipping rename of '${srcFiles[1]}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
             expect(globby.sync(srcGlob).length).to.eql(1);
@@ -162,8 +162,8 @@ describe('myApp', function () {
             srcFiles = globby.sync(srcGlob);
             dstGlob = path.join('test', 'test-data2', '/');
             expect(srcFiles.length).to.eql(1);
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
             expect(globby.sync(srcGlob)).to.have.members(srcFiles);
@@ -178,8 +178,8 @@ describe('myApp', function () {
             expect(globby.sync(dstGlob).length).to.eql(0);
 
             sinon.spy(commander, 'outputHelp');
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
             expect(commander.outputHelp.called).to.be.false;
@@ -189,8 +189,8 @@ describe('myApp', function () {
             commander.outputHelp.reset();
             srcGlob = 'test\\test-data\\\\';
             dstGlob = 'test\\\\test-data2\\';
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
@@ -207,8 +207,8 @@ describe('myApp', function () {
             expect(globby.sync(dstGlob).length).to.eql(0);
 
             sinon.spy(commander, 'outputHelp');
-            process.argv = [process.execPath, 'mvApp.js', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.calledWith(sinon.match('no such file or directory'))).to.be.true;
             expect(console.log.withArgs(`\x1b[36mRenamed 0 file(s)\x1b[0m`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
@@ -230,8 +230,8 @@ describe('myApp', function () {
 
             expect(srcFiles.length).to.eql(2);
             expect(dstFiles.length).to.eql(0);
-            process.argv = [process.execPath, 'mvApp.js', '--verbose', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--verbose', srcGlob, dstGlob];
+            mvjs.run();
             // Verify that verbose mode printout was performed...
             expect(console.log.withArgs(`Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
             expect(globby.sync(dstGlob).length).to.eql(1);
@@ -253,8 +253,8 @@ describe('myApp', function () {
             const starGlob = path.join(TEST_PATH, '*');
             const allFiles = globby.sync(starGlob);
 
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${newFilenames[0]}\x1b[0m`).calledOnce).to.be.true;
             expect(console.log.withArgs(`[Simulate] Renamed \x1b[37;1m${srcFiles[1]}\x1b[0m to \x1b[37;1m${newFilenames[1]}\x1b[0m`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
@@ -265,8 +265,8 @@ describe('myApp', function () {
             dstGlob = path.join('test', 'test-data2', 'dotdotnames2.z..');
             expect(srcFiles.length).to.eql(1);
             expect(globby.sync(dstGlob)).to.be.empty;
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
 
@@ -276,8 +276,8 @@ describe('myApp', function () {
             srcFiles = globby.sync(srcGlob);
             expect(srcFiles.length).to.eql(1);
             dstGlob = path.join('test', 'test-data2', 'bob', '/');
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1mtest/test-data2/bob\x1b[0m`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
 
@@ -294,8 +294,8 @@ describe('myApp', function () {
             // Case where destination file already exists.
             let srcGlob = path.join(TEST_PATH, '^onecaret.up^');
             let dstGlob = path.join(TEST_PATH, '^^onecaret.up^');
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Skipping rename of '${srcGlob}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
 
@@ -303,8 +303,8 @@ describe('myApp', function () {
             srcGlob = path.join(TEST_PATH, '*.JPEG');
             let srcFiles = globby.sync(srcGlob);
             dstGlob = path.join(TEST_PATH, 'newName.jpg');
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Renamed \x1b[37;1m${srcFiles[0]}\x1b[0m to \x1b[37;1m${dstGlob}\x1b[0m`).calledOnce).to.be.true;
             expect(console.log.withArgs(`[Simulate] Skipping rename of '${srcFiles[1]}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
@@ -315,8 +315,8 @@ describe('myApp', function () {
             srcFiles = globby.sync(srcGlob);
             dstGlob = path.join('test', 'test-data2', '/');
             expect(srcFiles.length).to.eql(1);
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.withArgs(`[Simulate] Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
 
@@ -325,8 +325,8 @@ describe('myApp', function () {
             dstGlob = path.join('test', 'newpath', '*.es6');
             expect(globby.sync(srcGlob).length).to.eql(2);
             expect(fs.existsSync(path.join('test', 'newpath'))).to.be.false;
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.calledWith(sinon.match('[Simulate] No such file or directory'))).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
             expect(fs.existsSync(path.join('test', 'newpath'))).to.be.false;
@@ -335,8 +335,8 @@ describe('myApp', function () {
             srcGlob = path.join(TEST_PATH, '*.doc');
             dstGlob = path.join(TEST_PATH, '*.pdf');
             expect(globby.sync(srcGlob)).to.be.empty;
-            process.argv = [process.execPath, 'mvApp.js', '--simulate', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
+            mvjs.run();
             expect(console.log.calledWith(sinon.match('[Simulate] File not found'))).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.false;
 
@@ -353,8 +353,8 @@ describe('myApp', function () {
             // Disable Mocha timeouts for this test
             this.timeout(0);
             sinon.spy(readlineSync, 'keyInYN');
-            process.argv = [process.execPath, 'mvApp.js', '--interactive', srcGlob, dstGlob];
-            mvApp.run();
+            process.argv = [process.execPath, 'mvjs.js', '--interactive', srcGlob, dstGlob];
+            mvjs.run();
             expect(readlineSync.keyInYN.calledTwice).to.be.true;
             expect(console.log.lastCall.calledWith(sinon.match(`Renamed`))).to.be.true;
             readlineSync.keyInYN.restore();
