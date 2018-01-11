@@ -26,10 +26,6 @@ function reloadApp() {
 describe('myApp', function () {
     describe('when arguments is not correct', function () {
         it('should display usage help info', function () {
-            // Temporarily suppress output to stdout
-            // let stdoutWriteStub = sinon.stub(process.stdout, 'write');
-            // stdoutWriteStub.returns(true);
-
             process.argv = [process.execPath, 'mvjs.js'];
             reloadApp();
             sinon.spy(commander, 'outputHelp');
@@ -66,7 +62,6 @@ describe('myApp', function () {
             commander.outputHelp.restore();
 
             reloadApp();
-            // process.stdout.write.restore();
         });
     });
 
@@ -101,17 +96,6 @@ describe('myApp', function () {
             expect(globby.sync(path.join('test', 'test-data2', '*'))).to.have.members(globby.sync(dstGlob));
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
 
-            // Case where destination has trailing path sep '/': it should be omitted.
-            // Rename to test/test-data2/bob should succeed because 'bob' does not already exist.
-            srcGlob = path.join(TEST_PATH, '$$twodollars.js$$');
-            expect(globby.sync(srcGlob).length).to.eql(1);
-            dstGlob = path.join('test', 'test-data2', 'bob', '/');
-            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
-            mvjs.run();
-            expect(globby.sync(srcGlob)).to.be.empty;
-            expect(globby.sync(path.join('test', 'test-data2', 'bob')).length).to.eql(1);
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
-
             // Cases where wildcards are used in paths
             srcGlob = path.join('t???', 'test-d*ta**', '*.js');
             dstGlob = path.join('test', 't???-dat**2', '*.es6');
@@ -121,16 +105,72 @@ describe('myApp', function () {
             expect(globby.sync(dstGlob).length).to.eql(2);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
 
+
+        });
+
+        it('should handle \\ and / characters correctly, according to operating system', function () {
+            sinon.spy(commander, 'outputHelp');
+
             // Cases with Windows path separator '\'
-            srcGlob = 'test\\\\test-data/dot*.?.*';
-            dstGlob = 'test/test-data2\\bot*.?';
-            expect(globby.sync(srcGlob).length).to.eql(4);
+            let srcGlob = 'test\\\\test-data\\dot*.?.*';
+            let dstGlob = 'test\\test-data2\\\\bot*.?';
+            if (process.platform === 'win32') {
+                expect(globby.sync(srcGlob).length).to.eql(4);
+            }
+            else {
+                expect(globby.sync(srcGlob)).to.be.empty;
+            }
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            if (process.platform === 'win32') {
+                expect(globby.sync(srcGlob)).to.be.empty;
+                expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+                expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 4 file(s)\x1b[0m`)).to.be.true;
+            }
+            else {
+                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            }
+
+            console.log.reset();
+            let starGlob = path.join(TEST_PATH, '*');
+            let allFiles = globby.sync(starGlob);
+            srcGlob = 'test\\test-data\\\\';
+            dstGlob = 'test\\\\test-data2\\';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            // MacOS/Linux: file test\test-data\\ does not exist
+            // Windows: File 'test-data' does not exist (it is a folder)
+            expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
+            expect(commander.outputHelp.called).to.be.false;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+
+            // Case where destination has trailing path sep '/': it should be omitted.
+            // Rename to test/test-data2/bob should succeed because 'bob' does not already exist.
+            console.log.reset();
+            srcGlob = path.join(TEST_PATH, '$$twodollars.js$$');
+            expect(globby.sync(srcGlob).length).to.eql(1);
+            dstGlob = path.join('test', 'test-data2', 'bob', '/');
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
-            expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
-            expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 4 file(s)\x1b[0m`)).to.be.true;
+            expect(globby.sync(path.join('test', 'test-data2', 'bob')).length).to.eql(1);
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
+
+            // Case where destination has trailing path sep '/'
+            // Rename should fail because 'test/test-data2' (trailing '/' is omitted) already exists.
+            console.log.reset();
+            srcGlob = path.join(TEST_PATH, '^^twocarets.hi^^');
+            let srcFiles = globby.sync(srcGlob);
+            dstGlob = path.join('test', 'test-data2', '/');
+            expect(srcFiles.length).to.eql(1);
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+
+            commander.outputHelp.restore();
         });
 
         it('should display a message if destination already exists', function () {
@@ -155,18 +195,6 @@ describe('myApp', function () {
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
             expect(globby.sync(srcGlob).length).to.eql(1);
             expect(globby.sync(dstGlob).length).to.eql(1);
-
-            // Case where destination has trailing path sep '/'
-            // Rename should fail because 'test/test-data2' (trailing '/' is omitted) already exists.
-            srcGlob = path.join(TEST_PATH, '^^twocarets.hi^^');
-            srcFiles = globby.sync(srcGlob);
-            dstGlob = path.join('test', 'test-data2', '/');
-            expect(srcFiles.length).to.eql(1);
-            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
-            mvjs.run();
-            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
-            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
         });
 
         it('should display a message if no source file found', function () {
@@ -182,16 +210,6 @@ describe('myApp', function () {
             mvjs.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
-            expect(commander.outputHelp.called).to.be.false;
-            expect(globby.sync(starGlob)).to.have.members(allFiles);
-
-            console.log.reset();
-            commander.outputHelp.reset();
-            srcGlob = 'test\\test-data\\\\';
-            dstGlob = 'test\\\\test-data2\\';
-            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
-            mvjs.run();
-            expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
