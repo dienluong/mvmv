@@ -14,13 +14,52 @@ const sinon         = require('sinon');
 const TEST_PATH     = path.join('test', 'test-data');
 
 /**
- * Resets the 'commander' module by reloading it, both in mvjs module and in this test module.
+ * Resets the 'commander' module by reloading both the mvjs module and 'commander' in this module.
  */
 function reloadApp() {
     delete require.cache[ require.resolve('../src/mvjs') ];
     delete require.cache[ require.resolve('commander') ];
     mvjs       = require('../src/mvjs');
     commander   = require('commander');
+}
+
+function populateMockedFS(mockedSystem) {
+    const g = new FilenameGen();
+    const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
+    // Add peculiar filenames
+    const specialNames = [ '^onecaret.up^', '^^onecaret.up^', '^twocarets.hi^^', '^^twocarets.hi^^',
+        '$onedollar.tm$', '$$onedollar.tm$', '$twodollars.js$$', '$$twodollars.js$$',
+        'dotnames1.a.b', 'dotnames2.a.b', 'dotdotnames1.z..', 'dotdotnames2.z..'];
+    let folderContent = {};
+
+    // Build a Map tracking all files in the mock filesystem (created w/ mock-fs).
+    // Key is the file extension and value is an array of the filenames with that extension
+    // Also builds the object "folderContent" for mock-fs
+    for (let i = extensions.length - 1; i >= 0; i -= 1) {
+        const name1 = g.generate(extensions[i]);
+        const name2 = g.generate(extensions[i]);
+        Object.defineProperty(folderContent, name1, {
+            enumerable: true,
+            value: 'created by mock-fs'
+        });
+        Object.defineProperty(folderContent, name2, {
+            enumerable: true,
+            value: 'created by mock-fs'
+        });
+    }
+
+    specialNames.forEach(function (name) {
+        Object.defineProperty(folderContent, name, {
+            enumerable: true,
+            value: 'created by mock-fs'
+        });
+    });
+
+    // creates mock test folder and files
+    mockedSystem({
+        'test/test-data' : folderContent,
+        'test/test-data2': {}
+    });
 }
 
 describe('myApp', function () {
@@ -108,10 +147,7 @@ describe('myApp', function () {
 
         });
 
-        it('should handle \\ and / characters correctly, according to operating system', function () {
-            sinon.spy(commander, 'outputHelp');
-
-            // Cases with Windows path separator '\'
+        it('should handle backward-slash \\ character correctly, according to operating system', function () {
             let srcGlob = 'test\\\\test-data\\dot*.?.*';
             let dstGlob = 'test\\test-data2\\\\bot*.?';
             if (process.platform === 'win32') {
@@ -132,48 +168,190 @@ describe('myApp', function () {
                 expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
             }
 
-            console.log.reset();
-            let starGlob = path.join(TEST_PATH, '*');
-            let allFiles = globby.sync(starGlob);
-            srcGlob = 'test\\test-data\\\\';
-            dstGlob = 'test\\\\test-data2\\';
+            // Case with trailing '\' in source
+            srcGlob = 'test\\test-data\\*.JS\\\\';
+            dstGlob = 'test\\test-data2\\*.JS';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            // MacOS/Linux: file test\test-data\\ does not exist
-            // Windows: File 'test-data' does not exist (it is a folder)
-            expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
-            expect(commander.outputHelp.called).to.be.false;
-            expect(globby.sync(starGlob)).to.have.members(allFiles);
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(globby.sync('test\\test-data\\*.JS').length).to.eql(2);
+            expect(globby.sync(dstGlob)).to.be.empty;
 
-            // Case where destination has trailing path sep '/': it should be omitted.
-            // Rename to test/test-data2/bob should succeed because 'bob' does not already exist.
-            console.log.reset();
-            srcGlob = path.join(TEST_PATH, '$$twodollars.js$$');
+            // Case with trailing '\' in destination, when destination files do not already exist
+            srcGlob = 'test\\test-data\\*.JS';
+            dstGlob = 'test\\test-data2\\*.JS\\\\';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            // On Windows: afile.JS/ would be successfully written as afile.JS
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
+            expect(globby.sync(srcGlob)).to.be.empty;
+            expect(globby.sync('test\\test-data2\\*.JS').length).to.eql(2);
+
+            // Case with trailing '\' in destination, when destination files already exist
+            srcGlob = 'test\\test-data\\^onecaret.up^';
+            dstGlob = 'test\\test-data\\^onecaret.up^\\\\';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
             expect(globby.sync(srcGlob).length).to.eql(1);
-            dstGlob = path.join('test', 'test-data2', 'bob', '/');
+            expect(console.log.withArgs(`Skipping rename of 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^/' already exists.`).calledOnce).to.be.true;
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+        });
+
+        it('should handle forward-slash character / correctly, according to operating system', function () {
+            let srcGlob = 'test//test-data///*.txt';
+            let dstGlob = 'test///test-data2////*.out';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
-            expect(globby.sync(path.join('test', 'test-data2', 'bob')).length).to.eql(1);
+            expect(globby.sync(dstGlob).length).to.eql(2);
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
+
+            // Case with trailing '/' in source
+            console.log.reset();
+            srcGlob = 'test////test-data///*.js///';
+            dstGlob = 'test//test-data2/*.js';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(globby.sync('test/test-data/*.js').length).to.eql(2);
+            expect(globby.sync(dstGlob)).to.be.empty;
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+
+            // Case with trailing '/' in destination, but destination does not already exist
+            console.log.reset();
+            srcGlob = 'test//test-data/$$twodollars.js$$';
+            dstGlob = 'test///test-data2/bob////';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(globby.sync(srcGlob)).to.be.empty;
+            // On Windows: afile.ext/ would be successfully written as afile.ext
+            expect(globby.sync('test/test-data2/bob').length).to.eql(1);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
 
-            // Case where destination has trailing path sep '/'
-            // Rename should fail because 'test/test-data2' (trailing '/' is omitted) already exists.
+            // Case with trailing '/' in destination, when destination already exists
             console.log.reset();
-            srcGlob = path.join(TEST_PATH, '^^twocarets.hi^^');
+            srcGlob = 'test/test-data/$onedollar.tm$';
+            dstGlob = 'test//test-data/$onedollar.tm$////';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(globby.sync(srcGlob).length).to.eql(1);
+            expect(console.log.withArgs(`Skipping rename of '${srcGlob}': 'test/test-data/$onedollar.tm$/' already exists.`).calledOnce).to.be.true;
+            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+        });
+
+        it('should refuse to rename if source and/or destinations are folders', function () {
+            sinon.spy(commander, 'outputHelp');
+
+            // Case where source is a folder
+            // Expect 'file not found' as move/rename of folders not supported
+            let srcGlob = 'test\\test-data';
+            let dstGlob = 'test\\\\test-data2\\a.file';
+            const starGlob = path.join(TEST_PATH, '*');
+            let allFiles = globby.sync(starGlob);
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+
+            srcGlob = 'test///test-data2';
+            dstGlob = 'test//test-data///another.file';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+
+            // Case where destination is a folder
+            // Rename should fail because 'test/test-data2' already exists.
+            console.log.reset();
+            srcGlob = 'test///test-data//^^twocarets.hi^^';
             let srcFiles = globby.sync(srcGlob);
-            dstGlob = path.join('test', 'test-data2', '/');
             expect(srcFiles.length).to.eql(1);
+            dstGlob = 'test\\\\test-data2';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
             expect(globby.sync(srcGlob)).to.have.members(srcFiles);
 
+            expect(commander.outputHelp.notCalled).to.be.true;
+            commander.outputHelp.restore();
+
+            // At some point, calling too many times mvjs.run() will generate MaxListenersExceededWarning.
+            // To avoid this warning, we need to reset 'commander'.
+            // We have to do the following because 'commander' module does not offer a way to reset itself.
+            mockFs.restore();
+            reloadApp();
+            populateMockedFS(mockFs);
+            sinon.spy(commander, 'outputHelp');
+
+            // Case with trailing '\' in source folder name
+            console.log.reset();
+            allFiles = globby.sync(starGlob);
+            srcGlob = 'test\\test-data\\\\';
+            dstGlob = 'test/test-data2/a.file';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            // MacOS/Linux: file test\test-data\\ does not exist
+            // Windows: Expect 'file not found' as move/rename of folders not supported
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+            expect(globby.sync(dstGlob)).to.be.empty;
+
+            // Case with trailing '\' in destination folder name
+            console.log.reset();
+            srcGlob = 'test/test-data/dotdotnames2.z..';
+            dstGlob = 'test\\test-data2\\\\\\';
+            srcFiles = globby.sync(srcGlob);
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+            // Expect no change in src folder's content
+            expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
+            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+            expect(globby.sync('test/test-data2/*')).to.be.empty;
+
+            expect(commander.outputHelp.notCalled).to.be.true;
+            commander.outputHelp.restore();
+
+            // At some point, calling too many times mvjs.run() will generate MaxListenersExceededWarning.
+            // To avoid this warning, we need to reset 'commander'.
+            // We have to do the following because 'commander' module does not offer a way to reset itself.
+            mockFs.restore();
+            reloadApp();
+            populateMockedFS(mockFs);
+            sinon.spy(commander, 'outputHelp');
+
+            // Case with trailing '/' in source folder name
+            console.log.reset();
+            allFiles = globby.sync(starGlob);
+            srcGlob = 'test///test-data///';
+            dstGlob = 'test\\test-data2\\\\\\a.file';
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            // Expect 'file not found' as move/rename of folders not supported
+            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(globby.sync(starGlob)).to.have.members(allFiles);
+            expect(globby.sync('test/test-data2/*')).to.be.empty;
+
+            // Case with trailing '/' in destination folder name
+            console.log.reset();
+            srcGlob = 'test\\\\\\test-data\\\\dotnames2.a.b';
+            dstGlob = 'test///test-data2///';
+            srcFiles = globby.sync(srcGlob);
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            mvjs.run();
+            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+            // Expect no change in src folder's content
+            expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
+            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+            expect(globby.sync('test/test-data2/*')).to.be.empty;
+
+            expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();
         });
 
         it('should display a message if destination already exists', function () {
+            sinon.spy(commander, 'outputHelp');
+
             // Case where destination file already exists: rename should abort
             let srcGlob = path.join(TEST_PATH, '^onecaret.up^');
             let dstGlob = path.join(TEST_PATH, '^^onecaret.up^');
@@ -195,24 +373,27 @@ describe('myApp', function () {
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
             expect(globby.sync(srcGlob).length).to.eql(1);
             expect(globby.sync(dstGlob).length).to.eql(1);
+
+            expect(commander.outputHelp.notCalled).to.be.true;
+            commander.outputHelp.restore();
         });
 
         it('should display a message if no source file found', function () {
+            sinon.spy(commander, 'outputHelp');
             let starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
             let srcGlob = path.join(TEST_PATH, '*.doc');
             let dstGlob = path.join(TEST_PATH, '*.pdf');
             expect(globby.sync(srcGlob).length).to.eql(0);
-            expect(globby.sync(dstGlob).length).to.eql(0);
 
-            sinon.spy(commander, 'outputHelp');
+            expect(globby.sync(dstGlob).length).to.eql(0);
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
-            expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
+            expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();
         });
 
@@ -230,11 +411,11 @@ describe('myApp', function () {
             expect(console.log.calledWith(sinon.match('no such file or directory'))).to.be.true;
             expect(console.log.withArgs(`\x1b[36mRenamed 0 file(s)\x1b[0m`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
-            expect(commander.outputHelp.called).to.be.false;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
             expect(globby.sync(srcGlob).length).to.eql(2);
             expect(globby.sync(dstGlob).length).to.eql(0);
 
+            expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();
         });
 
@@ -382,42 +563,7 @@ describe('myApp', function () {
         /* ------------ before() and after() section ----------- */
         /* ----------------------------------------------------- */
         beforeEach(function () {
-            const g = new FilenameGen();
-            const extensions = ['txt', 'TXT', 'jpeg', 'JPEG', 'js', 'JS'];
-            // Add peculiar filenames
-            const specialNames = [ '^onecaret.up^', '^^onecaret.up^', '^twocarets.hi^^', '^^twocarets.hi^^',
-                '$onedollar.tm$', '$$onedollar.tm$', '$twodollars.js$$', '$$twodollars.js$$',
-                'dotnames1.a.b', 'dotnames2.a.b', 'dotdotnames1.z..', 'dotdotnames2.z..'];
-            let folderContent = {};
-
-            // Build a Map tracking all files in the mock filesystem (created w/ mock-fs).
-            // Key is the file extension and value is an array of the filenames with that extension
-            // Also builds the object "folderContent" for mock-fs
-            for (let i = extensions.length - 1; i >= 0; i -= 1) {
-                const name1 = g.generate(extensions[i]);
-                const name2 = g.generate(extensions[i]);
-                Object.defineProperty(folderContent, name1, {
-                    enumerable: true,
-                    value: 'created by mock-fs'
-                });
-                Object.defineProperty(folderContent, name2, {
-                    enumerable: true,
-                    value: 'created by mock-fs'
-                });
-            }
-
-            specialNames.forEach(function (name) {
-                Object.defineProperty(folderContent, name, {
-                    enumerable: true,
-                    value: 'created by mock-fs'
-                });
-            });
-
-            // creates mock test folder and files
-            mockFs({
-                'test/test-data' : folderContent,
-                'test/test-data2': {}
-            });
+            populateMockedFS(mockFs);
 
             this.argv = process.argv;   // backs up argv
             sinon.spy(console, 'log');
