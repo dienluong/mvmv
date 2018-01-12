@@ -147,18 +147,9 @@ function _globGroupsCollectionFactory() {
         }
 
         // Transform glob pattern to equivalent regex
-        // TODO: choose one of the two methods for adding capture groups
-        // let regex = glToRe(glob, {extended: true});
-        // regex = __addCaptureGroups(regex);
-        // let regex = _convertToRegExWithCaptureGroups(glob);
-        // (regex.source !== regex2.source) ? console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$') : console.log('');
-
         this._regexWithCapture = _convertToRegExWithCaptureGroups(glob);
         // Produce an array of all groups from the glob pattern
         this._globGroupArray = deconstruct(glob, {collapse: true});
-
-        //TODO: DELETE
-        // this._regexCaptureGroupArray = _extractCaptureGroups(this._regexWithCapture);
 
         if (text) {
             this.buildGroups(text);
@@ -214,8 +205,6 @@ function _globGroupsCollectionFactory() {
         this._globGroupArray.forEach(function (g, idx) {
             // matches[idx + 1] because whole match is first element of the array of matches
             if (g === '?' || g === '*') {
-                //TODO: DELETE
-                // let glob = (g === '.') ? '?' : '*';
                 this._groups.push(Object.freeze({
                     type: "wildcard",
                     pattern: g,
@@ -223,10 +212,6 @@ function _globGroupsCollectionFactory() {
                 }));
             }
             else {
-                //TODO DELETE
-                // g = g.replace(/\\{2}/, '\\');
-                // Remove escape character \ from the regex pattern.
-                // g = g.replace(/\\/g, '');
                 this._groups.push(Object.freeze({
                     type: "literal",
                     pattern: g,

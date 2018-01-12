@@ -114,12 +114,8 @@ function run () {
     .option('-v, --verbose', 'Prints additional operation details.')
     .arguments('<source> <target>')
     .parse(process.argv);
-    // .usage('[options] <source> <target>')
-    // .action(processArguments)
 
     if (commandLine.args.length !== 2) {
-// console.log('myApp DEBUG: ' + process.argv);
-// console.log('myApp DEBUG: ' + commandLine.args);
         commandLine.outputHelp();
         return;
     }
