@@ -174,8 +174,16 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
-            expect(globby.sync('test\\test-data\\*.JS').length).to.eql(2);
+            if (process.platform === 'win32') {
+                expect(globby.sync('test\\test-data\\*.JS').length).to.eql(2);
+            }
+            else {
+                expect(globby.sync('test\\test-data\\*.JS')).to.be.empty;
+            }
+            expect(globby.sync(srcGlob)).to.be.empty;
             expect(globby.sync(dstGlob)).to.be.empty;
+            expect(globby.sync('test/test-data/*.JS').length).to.eql(2);
+            expect(globby.sync('test/test-data2/*.JS')).to.be.empty;
 
             // Case with trailing '\' in destination, when destination files do not already exist
             srcGlob = 'test\\test-data\\*.JS';
@@ -183,18 +191,36 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             // On Windows: afile.JS/ would be successfully written as afile.JS
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
-            expect(globby.sync(srcGlob)).to.be.empty;
-            expect(globby.sync('test\\test-data2\\*.JS').length).to.eql(2);
+            if (process.platform === 'win32') {
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 2 file(s)\x1b[0m`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                expect(globby.sync('test\\test-data2\\*.JS').length).to.eql(2);
+            }
+            else {
+                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                expect(globby.sync(dstGlob)).to.be.empty;
+                expect(globby.sync('test/test-data2/*.JS')).to.be.empty;
+                expect(globby.sync('test/test-data/*.JS').length).to.eql(2);
+            }
 
             // Case with trailing '\' in destination, when destination files already exist
             srcGlob = 'test\\test-data\\^onecaret.up^';
             dstGlob = 'test\\test-data\\^onecaret.up^\\\\';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(globby.sync(srcGlob).length).to.eql(1);
-            expect(console.log.withArgs(`Skipping rename of 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^/' already exists.`).calledOnce).to.be.true;
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+            if (process.platform === 'win32') {
+                expect(globby.sync(srcGlob).length).to.eql(1);
+                expect(console.log.withArgs(`Skipping rename of 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^/' already exists.`).calledOnce).to.be.true;
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+            }
+            else {
+                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                expect(globby.sync(dstGlob)).to.be.empty;
+                expect(globby.sync('test/test-data/^onecaret.up^').length).to.eql(1);
+                expect(globby.sync('test/test-data/^onecaret.up^//')).to.be.empty;
+            }
         });
 
         it('should handle forward-slash character / correctly, according to operating system', function () {
@@ -260,17 +286,26 @@ describe('myApp', function () {
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
             // Case where destination is a folder
-            // Rename should fail because 'test/test-data2' already exists.
             console.log.reset();
             srcGlob = 'test///test-data//^^twocarets.hi^^';
+            dstGlob = 'test\\\\test-data2';
             let srcFiles = globby.sync(srcGlob);
             expect(srcFiles.length).to.eql(1);
-            dstGlob = 'test\\\\test-data2';
-            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
+            process.argv = [process.execPath, 'mvjs.js', '--verbose', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
-            expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
-            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+            if (process.platform === 'win32') {
+                // Rename should fail because 'test/test-data2' already exists.
+                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+            }
+            else {
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                // File 'test\\test-data2' should be created
+                // Note: In code '\\\\' --> in glob '\\'  --> matches character '\' in character
+                expect(globby.sync('test\\\\\\\\test-data2').length).to.eql(1);
+            }
 
             expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();
@@ -303,11 +338,20 @@ describe('myApp', function () {
             srcFiles = globby.sync(srcGlob);
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
-            // Expect no change in src folder's content
-            expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
-            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
-            expect(globby.sync('test/test-data2/*')).to.be.empty;
+            if (process.platform === 'win32') {
+                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+                // Expect no change in src folder's content
+                expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
+                expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+                expect(globby.sync('test/test-data2/*')).to.be.empty;
+            }
+            else {
+                expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                // File 'test\\test-data2' should be created
+                // Note: In code '\\\\' --> in glob '\\'  --> matches character '\' in character
+                expect(globby.sync('test\\\\test-data2\\\\\\\\\\\\').length).to.eql(1);
+            }
 
             expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();
@@ -337,13 +381,24 @@ describe('myApp', function () {
             srcGlob = 'test\\\\\\test-data\\\\dotnames2.a.b';
             dstGlob = 'test///test-data2///';
             srcFiles = globby.sync(srcGlob);
+            expect(globby.sync(dstGlob).length).to.eql(1);
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
-            // Expect no change in src folder's content
-            expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
-            expect(globby.sync(srcGlob)).to.have.members(srcFiles);
-            expect(globby.sync('test/test-data2/*')).to.be.empty;
+            if (process.platform === 'win32') {
+                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+                // Expect no change in src folder's content
+                expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
+                expect(globby.sync(srcGlob)).to.have.members(srcFiles);
+                expect(globby.sync('test/test-data2/*')).to.be.empty;
+            }
+            else {
+                // File 'test\\\test-data\dotnames2.a.b' does not exist
+                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(globby.sync(srcGlob)).to.be.empty;
+                // test/test-data2/ exists
+                expect(globby.sync('test/test-data2/*')).to.be.empty;
+            }
+            expect(globby.sync(dstGlob).length).to.eql(1);
 
             expect(commander.outputHelp.notCalled).to.be.true;
             commander.outputHelp.restore();

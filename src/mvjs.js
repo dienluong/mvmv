@@ -158,6 +158,6 @@ function run () {
 }
 
 // Comment this when unit testing
-run();
+// run();
 // Uncomment below when unit testing
-// module.exports.run = run;
+module.exports.run = run;
