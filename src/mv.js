@@ -61,11 +61,11 @@ function createMv(parser, renamer, mover) {
         }
 
         // Normalize the path separators:
-        // 1. Convert Windows path separators to posix separator
+        // 1. If on Windows, then convert Windows path separators to posix separator
         //    This is required for consistency because the glob module we rely on always uses posix separator.
         // 2. Collapse multiple '/' into a single one.
-        const srcPattern = process.platform === 'win32' ? src.replace(/\\/g, '/').replace(/\/+/g, '/') : src;
-        const dstPattern = process.platform === 'win32' ? dst.replace(/\\/g, '/').replace(/\/+/g, '/') : dst;
+        const srcPattern = process.platform === 'win32' ? src.replace(/\\/g, '/').replace(/\/+/g, '/') : src.replace(/\/+/g, '/');
+        const dstPattern = process.platform === 'win32' ? dst.replace(/\\/g, '/').replace(/\/+/g, '/') : dst.replace(/\/+/g, '/');
 
         filenames = _fetchFilenames(srcPattern);
         if (filenames.length) {
