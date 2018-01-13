@@ -134,7 +134,10 @@ function run () {
 
     const srcGlob = commandLine.args[0];
     const dstGlob = commandLine.args[1];
-    printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
+
+    if (commandLine.verbose || commandLine.simulate) {
+        printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
+    }
 
     const myMv = Mv.create(null, null, myMover);
     try {
@@ -146,7 +149,7 @@ function run () {
     }
 
     if (result === null) {
-        printWithMode(`File not found.`);
+        printWithMode(`Target file not found.`);
     }
     else if (Number.isFinite(result)) {
         printWithMode(`\x1b[36mRenamed ${result} file(s)\x1b[0m`);
@@ -154,6 +157,6 @@ function run () {
 }
 
 // Comment this when unit testing
-// run();
+run();
 // Uncomment below when unit testing
-module.exports.run = run;
+// module.exports.run = run;
