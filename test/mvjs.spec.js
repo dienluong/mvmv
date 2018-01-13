@@ -249,7 +249,9 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(globby.sync(srcGlob)).to.be.empty;
-            // On Windows: afile.ext/ would be successfully written as afile.ext
+            // On Windows: destination 'afile.ext/' would be successfully written as afile.ext
+            // On MacOS: Renaming to destination 'filename.ext/' would fail with 'Error: ENOENT: no such file or directory' BUT:
+            // it would succeed with mock-fs on MacOS! See https://github.com/tschaub/mock-fs/issues/227
             expect(globby.sync('test/test-data2/bob').length).to.eql(1);
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 1 file(s)\x1b[0m`)).to.be.true;
 
