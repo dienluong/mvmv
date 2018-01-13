@@ -211,7 +211,7 @@ describe('myApp', function () {
             mvjs.run();
             if (process.platform === 'win32') {
                 expect(globby.sync(srcGlob).length).to.eql(1);
-                expect(console.log.withArgs(`Skipping rename of 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^/' already exists.`).calledOnce).to.be.true;
+                expect(console.log.withArgs(`Skipping rename of 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^' already exists.`).calledOnce).to.be.true;
                 expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
             }
             else {
@@ -260,7 +260,7 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             expect(globby.sync(srcGlob).length).to.eql(1);
-            expect(console.log.withArgs(`Skipping rename of '${srcGlob}': 'test/test-data/$onedollar.tm$/' already exists.`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`Skipping rename of '${srcGlob}': 'test/test-data/$onedollar.tm$' already exists.`).calledOnce).to.be.true;
             expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
         });
 
@@ -339,7 +339,7 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             if (process.platform === 'win32') {
-                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
                 // Expect no change in src folder's content
                 expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
                 expect(globby.sync(srcGlob)).to.have.members(srcFiles);
@@ -385,7 +385,7 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             if (process.platform === 'win32') {
-                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2/' already exists.`).calledOnce).to.be.true;
+                expect(console.log.withArgs(`Skipping rename of '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
                 // Expect no change in src folder's content
                 expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
                 expect(globby.sync(srcGlob)).to.have.members(srcFiles);
