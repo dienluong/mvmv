@@ -62,7 +62,7 @@ function populateMockedFS(mockedSystem) {
     });
 }
 
-describe('myApp', function () {
+describe('mvjs', function () {
     describe('when arguments is not correct', function () {
         it('should display usage help info', function () {
             process.argv = [process.execPath, 'mvjs.js'];
@@ -165,7 +165,7 @@ describe('myApp', function () {
                 expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 4 file(s)\x1b[0m`)).to.be.true;
             }
             else {
-                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             }
 
             // Case with trailing '\' in source
@@ -173,7 +173,7 @@ describe('myApp', function () {
             dstGlob = 'test\\test-data2\\*.JS';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             if (process.platform === 'win32') {
                 expect(globby.sync('test\\test-data\\*.JS').length).to.eql(2);
             }
@@ -197,7 +197,7 @@ describe('myApp', function () {
                 expect(globby.sync('test\\test-data2\\*.JS').length).to.eql(2);
             }
             else {
-                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
                 expect(globby.sync(srcGlob)).to.be.empty;
                 expect(globby.sync(dstGlob)).to.be.empty;
                 expect(globby.sync('test/test-data2/*.JS')).to.be.empty;
@@ -215,7 +215,7 @@ describe('myApp', function () {
                 expect(console.log.lastCall.calledWith(`\x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.true;
             }
             else {
-                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
                 expect(globby.sync(srcGlob)).to.be.empty;
                 expect(globby.sync(dstGlob)).to.be.empty;
                 expect(globby.sync('test/test-data/^onecaret.up^').length).to.eql(1);
@@ -240,7 +240,7 @@ describe('myApp', function () {
             mvjs.run();
             expect(globby.sync('test/test-data/*.js').length).to.eql(2);
             expect(globby.sync(dstGlob)).to.be.empty;
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
 
             // Case with trailing '/' in destination, but destination does not already exist
             console.log.reset();
@@ -270,21 +270,21 @@ describe('myApp', function () {
             sinon.spy(commander, 'outputHelp');
 
             // Case where source is a folder
-            // Expect 'file not found' as move/rename of folders not supported
+            // Expect 'Target file not found' as move/rename of folders not supported
             let srcGlob = 'test\\test-data';
             let dstGlob = 'test\\\\test-data2\\a.file';
             const starGlob = path.join(TEST_PATH, '*');
             let allFiles = globby.sync(starGlob);
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
             srcGlob = 'test///test-data2';
             dstGlob = 'test//test-data///another.file';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
             // Case where destination is a folder
@@ -293,7 +293,7 @@ describe('myApp', function () {
             dstGlob = 'test\\\\test-data2';
             let srcFiles = globby.sync(srcGlob);
             expect(srcFiles.length).to.eql(1);
-            process.argv = [process.execPath, 'mvjs.js', '--verbose', srcGlob, dstGlob];
+            process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             if (process.platform === 'win32') {
                 // Rename should fail because 'test/test-data2' already exists.
@@ -328,8 +328,8 @@ describe('myApp', function () {
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
             // MacOS/Linux: file test\test-data\\ does not exist
-            // Windows: Expect 'file not found' as move/rename of folders not supported
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            // Windows: Expect 'Target file not found' as move/rename of folders not supported
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
             expect(globby.sync(dstGlob)).to.be.empty;
 
@@ -373,8 +373,8 @@ describe('myApp', function () {
             dstGlob = 'test\\test-data2\\\\\\a.file';
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            // Expect 'file not found' as move/rename of folders not supported
-            expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+            // Expect 'Target file not found' as move/rename of folders not supported
+            expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
             expect(globby.sync(starGlob)).to.have.members(allFiles);
             expect(globby.sync('test/test-data2/*')).to.be.empty;
 
@@ -395,7 +395,7 @@ describe('myApp', function () {
             }
             else {
                 // File 'test\\\test-data\dotnames2.a.b' does not exist
-                expect(console.log.lastCall.calledWith(`File not found.`)).to.be.true;
+                expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
                 expect(globby.sync(srcGlob)).to.be.empty;
                 // test/test-data2/ exists
                 expect(globby.sync('test/test-data2/*')).to.be.empty;
@@ -446,7 +446,7 @@ describe('myApp', function () {
             expect(globby.sync(dstGlob).length).to.eql(0);
             process.argv = [process.execPath, 'mvjs.js', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.withArgs(`File not found.`).calledOnce).to.be.true;
+            expect(console.log.withArgs(`Target file not found.`).calledOnce).to.be.true;
             // Valid command line, usage info should NOT be displayed
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
@@ -593,7 +593,7 @@ describe('myApp', function () {
             expect(globby.sync(srcGlob)).to.be.empty;
             process.argv = [process.execPath, 'mvjs.js', '--simulate', srcGlob, dstGlob];
             mvjs.run();
-            expect(console.log.calledWith(sinon.match('[Simulate] File not found'))).to.be.true;
+            expect(console.log.calledWith(sinon.match('[Simulate] Target file not found.'))).to.be.true;
             expect(console.log.lastCall.calledWith(`[Simulate] \x1b[36mRenamed 0 file(s)\x1b[0m`)).to.be.false;
 
             // No file has changed in simulate mode
