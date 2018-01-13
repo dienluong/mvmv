@@ -64,8 +64,13 @@ function createMv(parser, renamer, mover) {
         // 1. If on Windows, then convert Windows path separators to posix separator
         //    This is required for consistency because the glob module we rely on always uses posix separator.
         // 2. Collapse multiple '/' into a single one.
-        const srcPattern = process.platform === 'win32' ? src.replace(/\\/g, '/').replace(/\/+/g, '/') : src.replace(/\/+/g, '/');
-        const dstPattern = process.platform === 'win32' ? dst.replace(/\\/g, '/').replace(/\/+/g, '/') : dst.replace(/\/+/g, '/');
+        let srcPattern = (process.platform === 'win32') ? src.replace(/\\/g, '/').replace(/\/+/g, '/') : src.replace(/\/+/g, '/');
+        let dstPattern = (process.platform === 'win32') ? dst.replace(/\\/g, '/').replace(/\/+/g, '/') : dst.replace(/\/+/g, '/');
+
+        // Removing trailing '/' to work around an inconsistency with fs.renameSync(), which is used in mv-mover module.
+        // On Windows, renaming to 'filename.ext/' would succeed and filename.ext (without trailing '/') would be created.
+        // On MacOS, such operation would fail with an Error: ENOENT: no such file or directory
+        dstPattern = dstPattern.endsWith('/') ? dstPattern.slice(0, -1) : dstPattern;
 
         filenames = _fetchFilenames(srcPattern);
         if (filenames.length) {
