@@ -1,10 +1,9 @@
 'use strict';
 
-//http://stackoverflow.com/a/25580289
 const glob = require('glob');
 
 function createParser () {
-    const defaultOptions = {
+    const _defaultOptions = {
         nobrace: true,
         noglobstar: true,
         noext: true,
@@ -17,7 +16,7 @@ function createParser () {
          * @method resolve
          * @param pattern {String} glob pattern
          * @param options {Object} globbing options
-         * @returns {String[]} Files/paths matching the provided pattern
+         * @returns {String[]} Files matching the provided pattern
          * @throws {Error} An Error object
          */
         resolve: function (pattern, options) {
@@ -26,12 +25,11 @@ function createParser () {
             }
 
             if (!options || typeof options !== 'object') {
-                options = defaultOptions;
+                options = _defaultOptions;
             }
 
             //returns array of filenames (string) matching the pattern, or empty array if no match
-            let results = glob.sync(pattern, options);
-            return results;
+            return glob.sync(pattern, options);
         }
     };
 }
