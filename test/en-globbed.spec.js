@@ -1,9 +1,11 @@
 'use strict';
 
 const expect    = require('chai').expect;
-// const sinon     = require('sinon');
+const sinon     = require('sinon');
 
-const capture = require('../src/en-globbed').capture;
+const englobbed = require('../src/en-globbed');
+const capture   = englobbed.capture;
+const deconstruct = englobbed.deconstruct;
 
 /*
  * ----------------------------------------------------------------------------------------------------
@@ -764,6 +766,65 @@ describe('When invalid parameters are given to capture()', function () {
             expect(result[1].getQuestionMark()).to.be.empty;
             expect(result[0].hasMatch()).to.be.true;
             expect(result[1].hasMatch()).to.be.false;
+        });
+    });
+});
+
+
+/*
+ * =============================================
+ *      Test for deconstruct() Method
+ * =============================================
+ */
+describe('When called with invalid glob', function () {
+    describe('deconstruct()', function () {
+        it('should return an empty array', function () {
+            let wrapper = { deconstruct: deconstruct };
+            sinon.spy(wrapper, 'deconstruct');
+
+            wrapper.deconstruct(123);
+            wrapper.deconstruct({});
+            wrapper.deconstruct([]);
+            wrapper.deconstruct(true);
+            wrapper.deconstruct('');
+            wrapper.deconstruct();
+
+            expect(wrapper.deconstruct.alwaysReturned([])).to.be.true;
+
+            wrapper.deconstruct.restore();
+        });
+    });
+});
+
+describe('When called with valid glob', function () {
+    describe('deconstruct()', function () {
+        it(`should return an array containing the glob's distinct parts`, function () {
+            let result = deconstruct('**');
+            expect(result).to.eql([ '*', '*' ]);
+            result = deconstruct('???');
+            expect(result).to.eql([ '?', '?', '?' ]);
+            result = deconstruct('ab\\');
+            expect(result).to.eql([ 'ab\\' ]);
+            result = deconstruct('*?**??\\ba');
+            expect(result).to.eql([ '*', '?', '*', '*', '?', '?', '\\ba' ]);
+            result = deconstruct('?\\\\?\***');
+            expect(result).to.eql([ '?', '\\\\', '?', '*', '*', '*' ]);
+            result = deconstruct('\/\*\*\???');
+            expect(result).to.eql([ '\/', '*', '*', '?', '?', '?' ]);
+        });
+    });
+});
+
+describe('When called with option collapse === true', function () {
+    describe('deconstruct()', function () {
+        it('should treat consecutive * as one', function () {
+            const opt = { collapse: true };
+            let result = deconstruct('****', opt);
+            expect(result).to.eql([ '*' ]);
+            result = deconstruct('*?a**?**c?*', opt);
+            expect(result).to.eql(['*', '?', 'a', '*', '?', '*', 'c', '?', '*']);
+            result = deconstruct('??**?\****.**', opt);
+            expect(result).to.eql([ '?', '?', '*', '?', '*', '.', '*' ]);
         });
     });
 });
