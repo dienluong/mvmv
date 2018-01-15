@@ -41,7 +41,6 @@ function capture(names, glob) {
  *                                             default is false.
  * @return {String[]} The parts of the glob; empty array if glob is invalid (e.g. empty string)
  *                  Example: For glob 'abc*def' -> [ 'abc', '*', 'def' ]
- * TODO: Write test cases!
  */
 function deconstruct(glob, options) {
     let groups = [];
@@ -59,12 +58,12 @@ function deconstruct(glob, options) {
 
     marker = subGlob.search(/[*|?]/g);
     while (marker !== -1) {
-        // If marker is not at first spot, everything before it is a group
+        // If marker is not at first spot, everything before the marker is a group
         // Example: abc*def -> groups [abc][*][def]
         if (marker !== 0) {
             groups.push(subGlob.slice(0, marker));
         }
-        // character at marker is itself a group of its own
+        // character at marker is itself a group on its own
         groups.push(subGlob.charAt(marker));
         // Truncate the portion already processed and continue with the remainder
         subGlob = subGlob.substr(marker+1);
