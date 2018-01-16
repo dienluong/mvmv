@@ -1,16 +1,16 @@
 'use strict';
 
 const glToRe  = require('glob-to-regexp');
-const groupsCollectionInterface = require('../src/globGroupsCollectionInterface');
+const globGroupsCollection = require('../src/globGroupsCollectionInterface');
 
 /**
- * The module determines the match of each wildcard of the provided glob, applied to an array of strings.
+ * The module determines the match of each part of the provided glob, applied to each element of the list of names.
  * @module englobbed
  */
 
 /**
- * For each element in names array (1st argument), return a globGroupsCollection containing the match of each parts of the glob pattern (2nd argument).
- * Example of parts of a glob: "?omer.*" => Parts: 1) '?', 2) 'omer.', 3) '*'
+ * For each element in names array, return a globGroupsCollection (an object implementing the globGroupsCollectionInterface) containing the match of each parts of the glob pattern.
+ * Example of parts of a glob: "?omer.*" => Parts: #1 '?', #2 'omer.', #3 '*'
  * @method capture
  * @param names {String[]} List of names
  * @param glob {String} The glob pattern to be applied to names
@@ -26,7 +26,7 @@ function capture(names, glob) {
     }
 
     // For each names received, return an object of type 'globGroupsCollection' containing the match for each part of the glob
-    return names.map(function buildCaptureGroupsCollection(name) {
+    return names.map(function buildGlobGroupsCollection(name) {
         let groupsObj = _globGroupsCollectionFactory();
         groupsObj.initGroups(glob);
         groupsObj.buildGroups(name);
@@ -36,7 +36,8 @@ function capture(names, glob) {
 
 /**
  * Returns the different parts (literals, wildcards) of a glob pattern.
- * @param glob {String} Glob to extract the parts from
+ * @method deconstruct
+ * @param glob {String} Glob pattern to extract the parts from
  * @param [options] {Object} options.collapse: whether consecutive * in glob pattern should collapse into a single *;
  *                                             default is false.
  * @return {String[]} The parts of the glob; empty array if glob is invalid (e.g. empty string)
@@ -80,11 +81,11 @@ function deconstruct(glob, options) {
 
 /**
  * Convert glob into regex with capture groups.
- * Example: abc.123.*DEF --> (abc)(.)(123)(.*)(DEF)
+ * Example: abc?123.*DEF --> /(abc)(.)(123\.)(.*)(DEF)/
  * @method _convertToRegExWithCaptureGroups
  * @private
- * @param glob {String} The glob pattern
- * @returns {RegExp} Regular expression with capture groups added to the various parts
+ * @param glob {String} The glob pattern to convert
+ * @return {RegExp} Regular expression with capture groups added to the various parts
  */
 function _convertToRegExWithCaptureGroups(glob) {
     let parts = deconstruct(glob, {collapse: true});
@@ -123,11 +124,13 @@ function _convertToRegExWithCaptureGroups(glob) {
 
 /**
  * Returns a globGroupsCollection object.
- * @return {globGroupsCollection} Object implementing the globGroupsCollection interface.
+ * @method _globGroupsCollectionFactory
  * @private
+ * @return {globGroupsCollection} Object implementing the globGroupsCollection interface.
  */
 function _globGroupsCollectionFactory() {
     /**
+     * Initializes the globGroupsCollection.
      * @method initGroups
      * @param glob {String} Glob pattern
      * @param [text] {String} The text to attempt to match with the glob pattern.
@@ -145,6 +148,9 @@ function _globGroupsCollectionFactory() {
             return false;
         }
 
+        this._groups = null;          // array of all groups
+        this._asterisk = null;        // array of groups for * wildcard
+        this._questionMark = null;    // array of groups for ? wildcard
         // Transform glob pattern to equivalent regex
         this._regexWithCapture = _convertToRegExWithCaptureGroups(glob);
         // Produce an array of all groups from the glob pattern
@@ -158,11 +164,12 @@ function _globGroupsCollectionFactory() {
     }
 
     /**
-     * Builds an array of group objects for each group of the glob pattern
+     * Builds an array of objects for each group (or parts) of the glob pattern.
+     * @method buildGroups
      * @param text {String} The text to attempt to match with the glob pattern.
      * @param [glob] {String} Glob pattern
      * @return {Object[]} - If the glob matches the given text, then each element of the array is an object
-     *                          for each "group" of the glob pattern; Example for glob 'h*':
+     *                          for each part of the glob pattern; Example for glob 'h*':
      *                              {type: 'literal', pattern: 'h', match: 'h'}
      *                              {type: 'wildcard', pattern: '*', match: 'omer.js'}
      *                 - If there is no match, then array is empty;
@@ -202,7 +209,7 @@ function _globGroupsCollectionFactory() {
         this._asterisk = null;
 
         this._globGroupArray.forEach(function (g, idx) {
-            // matches[idx + 1] because whole match is first element of the array of matches
+            // matches[idx + 1] because whole match is at index 0 of the array of matches
             if (g === '?' || g === '*') {
                 this._groups.push(Object.freeze({
                     type: "wildcard",
@@ -222,17 +229,26 @@ function _globGroupsCollectionFactory() {
         return this._groups;
     }
 
+    /**
+     * Whether the glob matches the text
+     * @method hasMatch
+     * @return {boolean}
+     */
     function hasMatch() {
         return (this._groups !== null && this._groups.length !== 0 && !(this._groups[0] instanceof Error));
     }
 
+    /**
+     * @method getGroups
+     * @return {Object[] | null} Array containing a match object for each group of the glob pattern; empty if no match; null if collection not built.
+     */
     function getGroups() {
         return this._groups;
     }
 
     /**
-     *
-     * @return {Object[] | null} Array containing a match object for each wildcard '*' capture group; null if collection not built
+     * @method getAsterisk
+     * @return {Object[] | null} Array containing a match object for each wildcard '*' capture group; empty if no match; null if collection not built.
      */
     function getAsterisk() {
         // if _groups initialized (not null)...
@@ -256,8 +272,8 @@ function _globGroupsCollectionFactory() {
     }
 
     /**
-     *
-     * @return {Object[] | null} Array containing a match object for each wildcard '?' capture group; null if collection not built
+     * @method getQuestionMark
+     * @return {Object[] | null} Array containing a match object for each wildcard '?' capture group; empty if no match; null if collection not built.
      */
     function getQuestionMark() {
         // if _groups initialized (not null)
@@ -280,13 +296,6 @@ function _globGroupsCollectionFactory() {
         }
     }
 
-    const globGroupsCollection = Object.assign({
-        _regexWithCapture: null,
-        _globGroupArray: null,
-        _groups: null,          // array of all groups
-        _asterisk: null,        // array of groups for * wildcard
-        _questionMark: null,    // array of groups for ? wildcard
-    }, groupsCollectionInterface);
     globGroupsCollection.initGroups = initGroups;
     globGroupsCollection.buildGroups = buildGroups;
     globGroupsCollection.getGroups = getGroups;
@@ -294,7 +303,7 @@ function _globGroupsCollectionFactory() {
     globGroupsCollection.getQuestionMark = getQuestionMark;
     globGroupsCollection.hasMatch = hasMatch;
 
-    return globGroupsCollection;
+    return Object.create(globGroupsCollection);
 }
 
 module.exports.capture = capture;
