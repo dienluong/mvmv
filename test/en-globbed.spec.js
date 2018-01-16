@@ -59,19 +59,19 @@ describe('When first argument is not an array', function () {
 describe('When receiving anything other than non-empty string as 2nd argument', function () {
     describe('capture()', function () {
         it('should return null', function () {
-            let result = capture([], 2);
+            let result = capture(['bob'], 2);
             expect(result).to.be.null;
 
-            result = capture([], '');
+            result = capture(['bob'], '');
             expect(result).to.be.null;
 
-            result = capture([], []);
+            result = capture(['bob'], []);
             expect(result).to.be.null;
 
-            result = capture([], {});
+            result = capture(['bob'], {});
             expect(result).to.be.null;
 
-            result = capture([]);
+            result = capture(['bob']);
             expect(result).to.be.null;
         });
     });
@@ -184,20 +184,20 @@ describe('When ** is specified', function () {
 describe('When * wildcard is used in glob pattern', function () {
     describe('capture()[x].getAsterisk()', function () {
         it('should return { type, pattern, match } with pattern="*" for every instances of *', function () {
-            let result = capture(['homersimpsons.txt'], '*hom??*m**.?*?');
+            let result = capture(['homersimpsons.txt'], '*hom??*m*.?**?');
             expect(result[0].getAsterisk()[0]).to.eql({ type: 'wildcard', pattern: '*', match: '' });
             expect(result[0].getAsterisk()[1]).to.eql({ type: 'wildcard', pattern: '*', match: 'si' });
             expect(result[0].getAsterisk()[2]).to.eql({ type: 'wildcard', pattern: '*', match: 'psons' });
             expect(result[0].getAsterisk()[3]).to.eql({ type: 'wildcard', pattern: '*', match: 'x' });
             expect(result[0].hasMatch()).to.be.true;
 
-            result = capture([''], '*');
+            result = capture([''], '***');
             expect(result[0].getAsterisk().length).to.eql(1);
             expect(result[0].getAsterisk()[0]).to.eql({ type: 'wildcard', pattern: '*', match: '' });
             expect(result[0].hasMatch()).to.be.true;
         });
 
-        it('should return empty array if no match', function () {
+        it('should return empty array if glob does not match', function () {
             let result = capture(['Bomersimpsons.txt'], '*hom??*m*.?**?');
             expect(result[0].getAsterisk()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
@@ -209,7 +209,7 @@ describe('When * wildcard is used in glob pattern', function () {
             expect(result[0].hasMatch()).to.be.true;
         });
 
-        it('should return empty array when invalid parameter used for capture()', function () {
+        it('should return empty array when invalid names used for capture()', function () {
             let result = capture([11], '*');
             expect(result.length).to.eql(1);
             expect(result[0].getAsterisk()).to.be.empty;
@@ -219,8 +219,9 @@ describe('When * wildcard is used in glob pattern', function () {
             expect(result.length).to.eql(2);
             expect(result[0].getAsterisk()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
+            expect(result[1].hasMatch()).to.be.true;
+            expect(result[1].getAsterisk()).to.be.not.empty;
         });
-        //TODO: TO BE CONTINUED...?
     });
 });
 
@@ -349,7 +350,7 @@ describe('When multiple ? wildcards are used', function () {
 describe('When ? wildcard is used in glob pattern', function () {
     describe('capture()[x].getQuestionMark()', function () {
         it('should return { type, pattern, match } with pattern="?" for every instances of ?', function () {
-            let result = capture(['homersimpsons.tx$'], '*hom??*m**.?*?');
+            let result = capture(['homersimpsons.tx$'], '*hom??*m*.?**?');
             expect(result[0].getQuestionMark()[0]).to.eql({ type: 'wildcard', pattern: '?', match: 'e' });
             expect(result[0].getQuestionMark()[1]).to.eql({ type: 'wildcard', pattern: '?', match: 'r' });
             expect(result[0].getQuestionMark()[2]).to.eql({ type: 'wildcard', pattern: '?', match: 't' });
@@ -357,7 +358,7 @@ describe('When ? wildcard is used in glob pattern', function () {
             expect(result[0].hasMatch()).to.be.true;
         });
 
-        it('should return empty array if no match', function () {
+        it('should return empty array if glob does not match', function () {
             let result = capture(['Bomersimpsons.txt'], '*hom??*m*.?**?');
             expect(result[0].getQuestionMark()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
@@ -377,7 +378,7 @@ describe('When ? wildcard is used in glob pattern', function () {
             expect(result[0].hasMatch()).to.be.true;
         });
 
-        it('should return empty array when invalid parameter used for capture()', function () {
+        it('should return empty array when invalid names used for capture()', function () {
             let result = capture([11], '?');
             expect(result.length).to.eql(1);
             expect(result[0].getQuestionMark()).to.be.empty;
@@ -387,8 +388,9 @@ describe('When ? wildcard is used in glob pattern', function () {
             expect(result.length).to.eql(2);
             expect(result[0].getQuestionMark()).to.be.empty;
             expect(result[0].hasMatch()).to.be.false;
+            expect(result[1].hasMatch()).to.be.true;
+            expect(result[1].getQuestionMark()).to.be.not.empty;
         });
-        //TODO: TO BE CONTINUED...?
     });
 });
 
@@ -694,7 +696,7 @@ describe('When a mix of wildcards and literal parts are used in glob pattern', f
 /*
  * Testing Error Cases for capture().getGroups()
  */
-describe('When invalid parameters are given to capture()', function () {
+describe('When element in names array is not a string', function () {
     describe('capture()[x].getGroups()', function () {
         it('should return an array containing an Error object', function () {
             let result = capture([0], '*.txt');
@@ -704,6 +706,12 @@ describe('When invalid parameters are given to capture()', function () {
             expect(result[0].hasMatch()).to.be.false;
 
             result = capture([undefined], 'bob');
+            expect(result[0].getGroups().length).to.eql(1);
+            expect(result[0].getGroups()[0]).to.be.instanceof(Error)
+            .and.have.property('message', 'Invalid type! Expects a string.');
+            expect(result[0].hasMatch()).to.be.false;
+
+            result = capture([['name.txt']], 'bob');
             expect(result[0].getGroups().length).to.eql(1);
             expect(result[0].getGroups()[0]).to.be.instanceof(Error)
             .and.have.property('message', 'Invalid type! Expects a string.');
