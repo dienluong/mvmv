@@ -4,7 +4,7 @@ const englobbed     = require('../src/en-globbed');
 function createRenamer() {
     /**
      * Builds new names based on provided glob patterns.
-     * @param names {String[] | string} List of original names to compute new names for, or a single name (string)
+     * @param names {String[] | string} List of original names, or a single name (string), to compute new names for
      * @param srcGlob {String} Glob pattern used to match the original names
      * @param dstGlob {String} Glob pattern used to contruct new names
      * @return {String[]} List of new names. String is empty if new name could not be computed.
@@ -55,7 +55,7 @@ function createRenamer() {
         }
 
         let computedNames = names.map(function buildNewName(name, nameIdx) {
-            // if source glob can't match the name, then can't construct new name
+            // The source glob is required to match the original name in order to proceed building the new name
             if (!srcCaptureGroupsArray[nameIdx].hasMatch()) {
                 return '';
             }
@@ -66,6 +66,7 @@ function createRenamer() {
             let srcQuestionMarkList = srcCaptureGroupsArray[nameIdx].getQuestionMark();
             let srcQuestionMarkIterator = srcQuestionMarkList && srcQuestionMarkList.length ? srcQuestionMarkList.entries() : null;
 
+            // Cycle through the parts of the destination glob to build the new name
             for (const destPart of dstGlobParts) {
                 let srcGroup;
                 switch (destPart) {
@@ -92,7 +93,7 @@ function createRenamer() {
     }
 
     /**
-     * Returns the count of * and ? wildcards found in an array of strings.
+     * Returns the number of elements representing * and ? wildcards.
      * @private
      * @param arr {String[]} The array to search
      * @returns {Object} stars: number of * ; questions: number of ?

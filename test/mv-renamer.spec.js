@@ -6,15 +6,6 @@ const renamer = require('../src/mv-renamer').create();
 
 describe('When parameters of invalid type are passed', function () {
     describe('renamer.computeName(names, srcGlob, dstGlob)', function () {
-        beforeEach(function () {
-            this.myRenamer = renamer;
-            sinon.spy(this.myRenamer, 'computeName');
-        });
-
-        afterEach(function () {
-            this.myRenamer.computeName.restore();
-        });
-
         it('should throw a TypeError', function () {
             try {
                 this.myRenamer.computeName({}, '*.txt', '*.out');
@@ -73,6 +64,15 @@ describe('When parameters of invalid type are passed', function () {
                 .and.have.property('message', 'Invalid names list. Array must be non-empty.');
             }
             expect(this.myRenamer.computeName.alwaysThrew('TypeError')).to.be.true;
+        });
+
+        beforeEach(function () {
+            this.myRenamer = renamer;
+            sinon.spy(this.myRenamer, 'computeName');
+        });
+
+        afterEach(function () {
+            this.myRenamer.computeName.restore();
         });
     });
 });
