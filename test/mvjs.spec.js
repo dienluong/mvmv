@@ -602,20 +602,23 @@ describe('mvjs', function () {
             expect(globby.sync(path.join('test', 'test-data2', '*'))).to.be.empty;
         });
 
-        it('should ask for confirmation for each operation, when in --interactive mode', function () {
-            let srcGlob = path.join(TEST_PATH, '*.js');
-            let dstGlob = path.join(TEST_PATH, '*.old');
+        // The following test does not work with mock-fs on Windows.
+        // Perform a manual test instead.
+        if (process.platform !== 'win32') {
+            it('should ask for confirmation for each operation, when in --interactive mode', function () {
+                let srcGlob = path.join(TEST_PATH, '*.js');
+                let dstGlob = path.join(TEST_PATH, '*.old');
 
-            // Disable Mocha timeouts for this test
-            this.timeout(0);
-            sinon.spy(readlineSync, 'keyInYN');
-            process.argv = [process.execPath, 'mvjs.js', '--interactive', srcGlob, dstGlob];
-            mvjs.run();
-            expect(readlineSync.keyInYN.calledTwice).to.be.true;
-            expect(console.log.lastCall.calledWith(sinon.match(`Renamed`))).to.be.true;
-            readlineSync.keyInYN.restore();
-        });
-
+                // Disable Mocha timeouts for this test
+                this.timeout(0);
+                sinon.spy(readlineSync, 'keyInYN');
+                process.argv = [process.execPath, 'mvjs.js', '--interactive', srcGlob, dstGlob];
+                mvjs.run();
+                expect(readlineSync.keyInYN.calledTwice).to.be.true;
+                expect(console.log.lastCall.calledWith(sinon.match(`Renamed`))).to.be.true;
+                readlineSync.keyInYN.restore();
+            });
+        }
         /* ----------------------------------------------------- */
         /* ------------ before() and after() section ----------- */
         /* ----------------------------------------------------- */

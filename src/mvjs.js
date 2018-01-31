@@ -127,10 +127,12 @@ function run () {
     let result;
 
     commandLine
-    .version('0.1.0')
-    .description('mvjs command renames files named by <source> to destination names specified by <target>.\n' +
+    .version('0.9.0')
+    .description('mvjs command renames files specified by <source> to destination names specified by <target>.\n' +
+        '  The file will not be renamed if a file with the same name already exists.\n' +
         '  mvjs supports * and ? globbing wildcards for specifying file name pattern.\n' +
-        '  If wildcards are used, <source> or <target> must be wrapped in quotes, unless on Windows.')
+        '  If wildcards are used, <source> and <target> must be wrapped in quotes, unless on Windows.\n' +
+        '  Multiple consecutive * wildcards in <source> are treated as one single * wildcard.')
     .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
     .option('-s, --simulate', 'Dry-runs the rename operations without affecting the file system.')
     .option('-v, --verbose', 'Prints additional operation details.')
@@ -180,6 +182,6 @@ function run () {
 }
 
 // Comment this when unit testing
-// run();
+run();
 // Uncomment below when unit testing
-module.exports.run = run;
+// module.exports.run = run;
