@@ -1,5 +1,5 @@
 'use strict';
-const englobbed     = require('../src/en-globbed');
+const englobbed     = require('./en-globbed');
 
 function createRenamer() {
     /**

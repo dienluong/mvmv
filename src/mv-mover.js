@@ -1,10 +1,9 @@
 'use strict';
-// const globule = require('globule');
 const fs = require('fs');
 
 function createMover() {
     /**
-     * Returns as soon as error encountered.
+     * Renames a list of files based on list of new names. Returns as soon as error encountered.
      * @param filesList {String[]} List of files to rename
      * @param newFilesList {String[]} List of new names
      * @param [options] {Object} For future use

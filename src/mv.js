@@ -1,8 +1,8 @@
 'use strict';
 
-const DefaultParser = require('../src/mv-parser');
-const DefaultRenamer = require('../src/mv-renamer');
-const DefaultMover  = require('../src/mv-mover');
+const DefaultParser = require('./mv-parser');
+const DefaultRenamer = require('./mv-renamer');
+const DefaultMover  = require('./mv-mover');
 
 /**
  * Creates a Mv object that renames files on file system using glob patterns.
@@ -36,6 +36,13 @@ function createMv(parser, renamer, mover) {
         return _mover.commit(oldFilenames, newFilenames, null, callback);
     }
 
+    /**
+     * Injects parser, renamer and mover objects into the Mv object.
+     * @method init
+     * @param p {Object} parser
+     * @param r {Object} renamer
+     * @param m {Object} mover
+     */
     function init(p, r, m) {
         _parser = p || _parser;
         _renamer = r || _renamer;
@@ -44,10 +51,11 @@ function createMv(parser, renamer, mover) {
 
     /**
      * Performs files rename on file system.
+     * @method exec
      * @param src {String} Glob pattern specifying files to rename
      * @param dst {String} Glob pattern characterizing the new names
      * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName.
-     * @return {Number | null} Number of successful renames. null if no source file found.
+     * @return {Number | null} Number of successful renames. Null if no source file found.
      * @throws {Error} An Error object
      */
     function exec(src, dst, cb) {

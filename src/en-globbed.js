@@ -1,7 +1,7 @@
 'use strict';
 
 const glToRe  = require('glob-to-regexp');
-const globGroupsCollection = require('../src/globGroupsCollectionInterface');
+const globGroupsCollection = require('./globGroupsCollectionInterface');
 
 /**
  * The module determines the match of each part of the provided glob, applied to each element of the list of strings ("names").
@@ -238,7 +238,7 @@ function _globGroupsCollectionFactory() {
      * @return {boolean}
      */
     function hasMatch() {
-        return (Array.isArray(this._groups) && this._groups.length !== 0 && !(this._groups[0] instanceof Error));
+        return (Array.isArray(this._groups) && (this._groups.length !== 0) && !(this._groups[0] instanceof Error));
     }
 
     /**

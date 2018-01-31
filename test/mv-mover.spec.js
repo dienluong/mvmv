@@ -15,7 +15,7 @@ const TEST_PATH     = path.join('test', 'test-data');
 
 describe('mv-mover', function () {
     describe('commit()', function () {
-        it('should rename *.txt files to *.doc on file system, and return [...].length = 2', function () {
+        it('should rename files on file system, and return an array of index of successful renames', function () {
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.doc');
             const filesList   = this.myParser.resolve(srcPattern);
@@ -203,6 +203,7 @@ describe('mv-mover', function () {
             filesList = this.myParser.resolve(path.join(TEST_PATH, '$$onedollar.tm$'));
             expect(filesList.length).to.eql(1);
         });
+
         it('should throw a TypeError if invalid argument type passed', function () {
             sinon.spy(this.myMover, 'commit');
 

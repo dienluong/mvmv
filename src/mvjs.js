@@ -6,9 +6,14 @@ const fs            = require('fs');
 const path          = require('path').posix;
 const readlineSync  = require('readline-sync');
 const commandLine   = require('commander');
-const Mv            = require('../src/mv');
-const Mover         = require('../src/mv-mover').create();
+const Mv            = require('./mv');
+const Mover         = require('./mv-mover').create();
 
+
+/**
+ * Wrapper for Mover, supporting printout of error onto the console.
+ * @type {Object}
+ */
 const defaultMover = {
     commit: function commit(src, dst) {
         return Mover.commit(src, dst, null, (err) => {
@@ -19,6 +24,10 @@ const defaultMover = {
     }
 };
 
+/**
+ * Wrapper for Mover, supporting confirmation prompt in interactive mode.
+ * @type {Object}
+ */
 const interactiveMover = {
     commit: function commit(src, dst) {
         let successList = [];
@@ -43,6 +52,10 @@ const interactiveMover = {
     }
 };
 
+/**
+ * Simulates a Mover -- commit() does not change the file system.
+ * @type {Object}
+ */
 const simulateMover = {
     commit: function commit(srcNames, dstNames) {
         let successList = [];
@@ -71,6 +84,10 @@ const simulateMover = {
     }
 };
 
+/**
+ * Wrapper for Mover, producing additional printouts onto the console; used for verbose mode.
+ * @type {Object}
+ */
 const verboseMover = {
     commit: function commit(src, dst) {
         let successList = [];
@@ -100,6 +117,11 @@ function _printWithPrefix(prefix, message) {
 
 let printWithMode;
 
+
+/**
+ * The main function that parses the command line, prints the usage help and the rename operation's result.
+ * Uses Mv object to perform the actual rename operation.
+ */
 function run () {
     let myMover = defaultMover;
     let result;
@@ -139,6 +161,7 @@ function run () {
         printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
     }
 
+    // Use Mv object to perform the rename operation
     const myMv = Mv.create(null, null, myMover);
     try {
         result = myMv.exec(srcGlob, dstGlob);
@@ -157,6 +180,6 @@ function run () {
 }
 
 // Comment this when unit testing
-run();
+// run();
 // Uncomment below when unit testing
-// module.exports.run = run;
+module.exports.run = run;
