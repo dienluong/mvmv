@@ -1,10 +1,10 @@
 {
   "name": "mvjs",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Shell script for batch renaming of files.",
   "main": "src/mvjs.js",
   "dependencies": {
-    "commander": "latest",
+    "commander": "^2.12.2",
     "glob": "^7.1.2",
     "glob-to-regexp": "^0.3.0",
     "readline-sync": "^1.4.7"
