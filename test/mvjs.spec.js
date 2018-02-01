@@ -13,6 +13,11 @@ const expect        = require('chai').expect;
 const sinon         = require('sinon');
 const TEST_PATH     = path.join('test', 'test-data');
 
+
+/*
+ * INSTRUCTIONS: before running this test script, modify mvjs.js by commenting out the call to run() and uncommenting the module.exports line.
+ */
+
 /**
  * Resets the 'commander' module by reloading both the mvjs module and 'commander' in this module.
  */
