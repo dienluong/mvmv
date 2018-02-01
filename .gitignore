@@ -1,6 +1,7 @@
 node_modules
 test/test-data
 test/test-data2
+test/setup
 test/setup/roadmap.md
 tmp
 .idea
