@@ -1,6 +1,6 @@
 # mvmv
 
-A package that performs batch renaming and moving of files that supports shell glob wildcards.  You can use it by importing it into your code or use it as a command on the terminal.
+A NodeJS package that performs batch renaming and moving of files that supports shell glob wildcards.  You can use it by importing it into your code or use it as a command on the terminal.
 
 ### In-code Use
 ```
