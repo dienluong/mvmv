@@ -4,7 +4,7 @@ A NodeJS package that performs batch renaming and moving of files. It supports g
 
 You can use the package by importing it into your NodeJS scripts or as a command on the terminal.
 
-### In-code Use
+### In-code Usage
 ```javascript
 const mvmv = require('mvmv').create();
 
@@ -13,7 +13,7 @@ mvmv.exec('*.txt', 'temp/*.old');
 
 `mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files renamed (returns NULL if file not found).
 
-### Command Line Use
+### Command-line Usage
 With package installed globally:
 ```bash
 > mvmv '*.txt' 'temp/*.old'
@@ -28,8 +28,7 @@ Execute the `mvmv` command without argument to see the usage information:
 
 ```
   Usage: mvmv [options] <source> <target>
- 
-
+  
   mvmv command renames files specified by <source> to destination names specified by <target>.
   The file will not be renamed if a file with the same name already exists.
   mvmv supports * and ? globbing wildcards for specifying file name pattern.
