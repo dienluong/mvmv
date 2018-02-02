@@ -1,12 +1,10 @@
-#!/usr/bin/env node
-
 'use strict';
 
 const fs            = require('fs');
 const path          = require('path').posix;
 const readlineSync  = require('readline-sync');
 const commandLine   = require('commander');
-const Mv            = require('./mv');
+const Controller    = require('./mv-controller');
 const Mover         = require('./mv-mover').create();
 
 
@@ -120,7 +118,7 @@ let printWithMode;
 
 /**
  * The main function that parses the command line, prints the usage help and the rename operation's result.
- * Uses Mv object to perform the actual rename operation.
+ * Uses controller object to perform the actual rename operation.
  */
 function run () {
     let myMover = defaultMover;
@@ -128,9 +126,9 @@ function run () {
 
     commandLine
     .version('0.9.0')
-    .description('mvjs command renames files specified by <source> to destination names specified by <target>.\n' +
+    .description('mvmv command renames files specified by <source> to destination names specified by <target>.\n' +
         '  The file will not be renamed if a file with the same name already exists.\n' +
-        '  mvjs supports * and ? globbing wildcards for specifying file name pattern.\n' +
+        '  mvmv supports * and ? globbing wildcards for specifying file name pattern.\n' +
         '  If wildcards are used, <source> and <target> must be wrapped in quotes, unless on Windows.\n' +
         '  Multiple consecutive * wildcards in <source> are treated as one single * wildcard.')
     .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
@@ -163,10 +161,10 @@ function run () {
         printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
     }
 
-    // Use Mv object to perform the rename operation
-    const myMv = Mv.create(null, null, myMover);
+    // Use controller object to perform the rename operation
+    const myController = Controller.create(null, null, myMover);
     try {
-        result = myMv.exec(srcGlob, dstGlob);
+        result = myController.exec(srcGlob, dstGlob);
     }
     catch (e) {
         console.log(`Error: ${e.message}`);
@@ -181,7 +179,4 @@ function run () {
     }
 }
 
-// Comment this when unit testing
-run();
-// Uncomment below when unit testing
-// module.exports.run = run;
+module.exports.run = run;
