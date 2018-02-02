@@ -1,7 +1,7 @@
 {
   "name": "mvmv",
   "version": "0.9.0",
-  "description": "Shell script for batch renaming and moving of files.",
+  "description": "Batch moving and renaming files using globbing patterns.",
   "main": "./src/mv-controller.js",
   "dependencies": {
     "commander": "^2.12.2",
@@ -27,6 +27,16 @@
   "bin": {
     "mvmv": "./src/mv-cmd.js"
   },
+  "keywords": [
+    "rename",
+    "move",
+    "multiple",
+    "batch",
+    "glob",
+    "wildcard",
+    "command",
+    "file"
+  ],
   "author": "Dien Luong",
-  "license": "ISC"
+  "license": "MIT"
 }
