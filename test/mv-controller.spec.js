@@ -9,44 +9,44 @@ const expect        = require('chai').expect;
 const sinon         = require('sinon');
 const globby        = require('globby');
 
-const Mv      = require('../src/mv');
+const Controller    = require('../src/mv-controller');
 const Parser  = require('../src/mv-parser');
 const Renamer = require('../src/mv-renamer');
 const Mover   = require('../src/mv-mover');
 
-describe('mv', function () {
+describe('Controller', function () {
     describe('exec()', function () {
         describe('invoked after init() called', function () {
             it('should use parser provided to init()', function () {
                 const srcGlob = path.join(TEST_PATH, '*.hi^^');
                 const dstGlob = path.join(TEST_PATH, '*.a.b');
-                this.myMv.init(this.myParser);
-                this.myMv.exec(srcGlob, dstGlob);
+                this.myController.init(this.myParser);
+                this.myController.exec(srcGlob, dstGlob);
                 expect(this.myParser.resolve.called).to.be.true;
             });
 
             it('should use renamer provided to init()', function () {
                 const srcGlob = path.join(TEST_PATH, '*.tm$');
                 const dstGlob = path.join(TEST_PATH, '*.js$$');
-                this.myMv.init(null, this.myRenamer);
-                this.myMv.exec(srcGlob, dstGlob);
+                this.myController.init(null, this.myRenamer);
+                this.myController.exec(srcGlob, dstGlob);
                 expect(this.myRenamer.computeName.called).to.be.true;
             });
 
             it('should use mover provided to init()', function () {
                 const srcGlob = path.join(TEST_PATH, '*.z..');
                 const dstGlob = path.join(TEST_PATH, '*.tm$');
-                this.myMv.init(null, null, this.myMover);
-                this.myMv.exec(srcGlob, dstGlob);
+                this.myController.init(null, null, this.myMover);
+                this.myController.exec(srcGlob, dstGlob);
                 expect(this.myMover.commit.called).to.be.true;
             });
 
             it('should use defaults if none provided to init()', function () {
                 const srcGlob = path.join(TEST_PATH, '*.a.b');
                 const dstGlob = path.join(TEST_PATH, '*.up^');
-                this.myMv.init();
+                this.myController.init();
                 //Calls exec() and asserts that nothing was thrown
-                expect(() => this.myMv.exec(srcGlob, dstGlob)).to.not.throw();
+                expect(() => this.myController.exec(srcGlob, dstGlob)).to.not.throw();
             });
         });
 
@@ -55,38 +55,38 @@ describe('mv', function () {
                 const srcGlob = path.join(TEST_PATH, '*doc');
                 const dstGlob = path.join(TEST_PATH, '*pdf');
                 let result;
-                expect(() => { result = this.myMv.exec(srcGlob, dstGlob); }).to.not.throw();
+                expect(() => { result = this.myController.exec(srcGlob, dstGlob); }).to.not.throw();
                 expect(result).to.be.null;
             });
 
-            it('should use objects provided to Mv.create()', function () {
+            it('should use objects provided to Controller.create()', function () {
                 const srcGlob = path.join(TEST_PATH, '*txt');
                 const dstGlob = path.join(TEST_PATH, '*TXT');
                 const myParser  = Parser.create();
                 const myRenamer = Renamer.create();
                 const myMover   = Mover.create();
-                const myMv      = Mv.create(myParser, myRenamer, myMover);
+                const myController = Controller.create(myParser, myRenamer, myMover);
 
                 sinon.spy(myParser, 'resolve');
                 sinon.spy(myRenamer, 'computeName');
                 sinon.spy(myMover, 'commit');
 
-                expect(() => myMv.exec(srcGlob, dstGlob)).to.not.throw();
+                expect(() => myController.exec(srcGlob, dstGlob)).to.not.throw();
                 expect(myParser.resolve.called).to.be.true;
                 expect(myRenamer.computeName.called).to.be.true;
                 expect(myMover.commit.called).to.be.true;
             });
 
             it('should throw an Error if glob pattern is missing or invalid', function () {
-                expect(() => this.myMv.exec()).to.throw();
-                expect(() => this.myMv.exec('abc')).to.throw();
-                expect(() => this.myMv.exec('abc', [])).to.throw();
-                expect(() => this.myMv.exec(123, '123')).to.throw();
-                expect(() => this.myMv.exec('', '123')).to.throw();
-                expect(() => this.myMv.exec('abc', '')).to.throw();
+                expect(() => this.myController.exec()).to.throw();
+                expect(() => this.myController.exec('abc')).to.throw();
+                expect(() => this.myController.exec('abc', [])).to.throw();
+                expect(() => this.myController.exec(123, '123')).to.throw();
+                expect(() => this.myController.exec('', '123')).to.throw();
+                expect(() => this.myController.exec('abc', '')).to.throw();
                 // Invalid because dest glob has more wildcards than source glob
-                expect(() => this.myMv.exec(path.join(TEST_PATH, '*'), path.join(TEST_PATH, '**'))).to.throw();
-                expect(() => this.myMv.exec(path.join(TEST_PATH, 'dotnames?.a.b'), path.join(TEST_PATH, '??_bad'))).to.throw();
+                expect(() => this.myController.exec(path.join(TEST_PATH, '*'), path.join(TEST_PATH, '**'))).to.throw();
+                expect(() => this.myController.exec(path.join(TEST_PATH, 'dotnames?.a.b'), path.join(TEST_PATH, '??_bad'))).to.throw();
             });
 
             it('should proceed renaming files based on provided globs and return the number of successful renames', function () {
@@ -97,7 +97,7 @@ describe('mv', function () {
                         return filename.replace(/\.up\^$/, '.z..');
                     }));
 
-                let result = this.myMv.exec(srcGlob, dstGlob);
+                let result = this.myController.exec(srcGlob, dstGlob);
 
                 // Asserts that original filenames no longer present after rename
                 expect(globby.sync(srcGlob)).to.be.empty;
@@ -115,7 +115,7 @@ describe('mv', function () {
                     expect(globby.sync(srcGlob).length).to.eql(0);
                 }
                 expect(globby.sync('test/test-data2/*')).to.be.empty;
-                result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
+                result = this.myController.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
                 if (process.platform === 'win32') {
                     expect(result).to.eql(4);
                     expect(globby.sync(srcGlob)).to.be.empty;
@@ -136,7 +136,7 @@ describe('mv', function () {
                 let dstGlob = path.join(TEST_PATH, '*.txt');
                 const dstFiles = globby.sync(dstGlob);
 
-                let result = this.myMv.exec(srcGlob, dstGlob);
+                let result = this.myController.exec(srcGlob, dstGlob);
 
                 expect(result).to.be.null;
                 // Asserts that original filenames remain after operation
@@ -146,9 +146,9 @@ describe('mv', function () {
                 // Case with Windows path separator '\'
                 srcGlob = 'test\\\\test-data2\\\\';
                 dstGlob = 'test\\test-data\\';
-                result = this.myMv.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
+                result = this.myController.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
                 // Linux/Mac: Expect null because no file matches 'test\\test-data2\\'
-                // Windows: Expect null because Mv only processes files, not folders ('test\\test-data2\\' matches folder test-data2.
+                // Windows: Expect null because Controller only processes files, not folders ('test\\test-data2\\' matches folder test-data2.
                 expect(result).to.be.null;
             });
         });
@@ -160,7 +160,7 @@ describe('mv', function () {
             this.myParser   = Parser.create();
             this.myRenamer  = Renamer.create();
             this.myMover    = Mover.create();
-            this.myMv       = Mv.create();
+            this.myController = Controller.create();
         });
 
         beforeEach(function () {

@@ -5,7 +5,7 @@ const DefaultRenamer = require('./mv-renamer');
 const DefaultMover  = require('./mv-mover');
 
 /**
- * Creates a Mv object that renames files on file system using glob patterns.
+ * Creates a mv-controller object that renames files on file system using glob patterns.
  * @param [parser] {Object} Object with a resolve(glob) method where:
  *                                  'glob' is a string.
  * @param [renamer] {Object} Object with a computeName(names, srcGlob, dstGlob) method where:
@@ -16,9 +16,9 @@ const DefaultMover  = require('./mv-mover');
  *                                  'oldNames': array of strings
  *                                  'newNames': array of strings
  *                                  'callback': function
- * @return {Object} An Mv object
+ * @return {Object} A mv-controller object
  */
-function createMv(parser, renamer, mover) {
+function createController(parser, renamer, mover) {
     let _parser     = null;
     let _renamer    = null;
     let _mover      = null;
@@ -37,7 +37,7 @@ function createMv(parser, renamer, mover) {
     }
 
     /**
-     * Injects parser, renamer and mover objects into the Mv object.
+     * Injects parser, renamer and mover objects into the mv-controller object.
      * @method init
      * @param p {Object} parser
      * @param r {Object} renamer
@@ -103,4 +103,4 @@ function createMv(parser, renamer, mover) {
     };
 }
 
-module.exports.create = createMv;
+module.exports.create = createController;
