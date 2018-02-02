@@ -54,7 +54,7 @@ function createController(parser, renamer, mover) {
      * @method exec
      * @param src {String} Glob pattern specifying files to rename
      * @param dst {String} Glob pattern characterizing the new names
-     * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName.
+     * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
      * @return {Number | null} Number of successful renames. Null if no source file found.
      * @throws {Error} An Error object
      */
