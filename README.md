@@ -25,7 +25,8 @@ With package installed locally:
 ```
 
 Execute the `mvmv` command without argument to see the usage information:
-```bash
+
+```
   Usage: mvmv [options] <source> <target>
  
 
