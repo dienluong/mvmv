@@ -126,6 +126,7 @@ function run () {
 
     commandLine
     .version('0.9.0')
+    .name('mvmv')
     .description('mvmv command renames files specified by <source> to destination names specified by <target>.\n' +
         '  The file will not be renamed if a file with the same name already exists.\n' +
         '  mvmv supports * and ? globbing wildcards for specifying file name pattern.\n' +
