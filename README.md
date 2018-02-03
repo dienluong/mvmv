@@ -53,7 +53,7 @@ Execute the `mvmv` command without argument to see the usage information:
 Wildcards in the destination globbing pattern correspond to the wildcard of the same type appearing in the source globbing pattern, matched by the order in which they appear.
 
 ##### Example
-```bash
+```
 mvmv '*-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
       | |        |  |       | |        | |
       | |        |  +-------|-|--------|-+
@@ -63,7 +63,7 @@ mvmv '*-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
 ```
 
 Illustrated in action:
-```bash
+```
 > ls -al
 -rw-r--r--   1 user  staff     0B  3 Feb 15:57 curly-howard-lines-s2-e2.txt
 -rw-r--r--   1 user  staff     0B  3 Feb 15:57 larry-fine-lines-season1-episode3.txt
