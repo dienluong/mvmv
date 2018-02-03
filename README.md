@@ -46,31 +46,32 @@ Execute the `mvmv` command without argument to see the usage information:
 
 ## Caveats
 - mvmv does not overwrite existing files.
-- mvmv treats consecutive `*` in the source glob pattern as a single `*`.
+- mvmv treats consecutive `*` wildcard in the source glob pattern as a single `*`. (This does not apply to the destination glob pattern.)
 
 
 ## How It Works
-Wildcards in the destination globbing pattern correspond to the wildcard of the same type appearing in the source globbing pattern, matched by the order in which they appear.
+Wildcards in the destination glob pattern correspond to the wildcards of the same type appearing in the source glob pattern, matched by the order in which they appear.
 
 ##### Example
 ```
-mvmv '*-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
-      | |        |  |       | |        | |
-      | |        |  +-------|-|--------|-+
-      | |        +----------|-|--------+
-      | +-------------------|-+
-      +---------------------+
+mvmv '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
+      |  |        |  |       | |        | |
+      |  |        |  +-------|-|--------|-+
+      |  |        +----------|-|--------+
+      |  +-------------------|-+
+      +----------------------+
 ```
+(Reminder: consecutive `*` wildcards in the source glob pattern are treated as a single `*`.)
 
-Illustrated in action:
+Demonstration:
 ```
 > ls -al
 -rw-r--r--   1 user  staff     0B  3 Feb 15:57 curly-howard-lines-s2-e2.txt
 -rw-r--r--   1 user  staff     0B  3 Feb 15:57 larry-fine-lines-season1-episode3.txt
 -rw-r--r--   1 user  staff     0B  3 Feb 15:57 moe-howard-lines-s04-ep01.txt
 
-> mvmv -v '*-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
-Source: *-*-lines-*?-*?.txt  Destination: *_*-lines-s?e?.txt
+> mvmv -v '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
+Source: **-*-lines-*?-*?.txt  Destination: *_*-lines-s?e?.txt
 Renamed curly-howard-lines-s2-e2.txt to curly_howard-lines-s2e2.txt
 Renamed larry-fine-lines-season1-episode3.txt to larry_fine-lines-s1e3.txt
 Renamed moe-howard-lines-s04-ep01.txt to moe_howard-lines-s4e1.txt
