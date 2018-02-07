@@ -1,7 +1,7 @@
  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
  
 # mvmv
-A NodeJS package that performs batch renaming and moving of files. It supports globbing[wildcards](http://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) `*` and `?`.
+A NodeJS package that performs batch renaming and moving of files. It supports globbing [wildcards](http://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) `*` and `?`.
 
 You can use the package by importing it into your NodeJS scripts or as a command on the terminal.
 
