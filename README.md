@@ -49,6 +49,7 @@ Execute the `mvmv` command without argument to see the usage information:
 ## Caveats
 - mvmv does not overwrite existing files.
 - mvmv treats consecutive `*` wildcard in the source glob pattern as a single `*`. (This does not apply to the destination glob pattern.)
+- globbing patterns must be enclosed in quotes to prevent wildcard expansion by the shell. An alternative is to turn off shell globbing. Please consult this StackOverflow [thread](https://stackoverflow.com/a/22945024) for more information.
 
 
 ## How It Works
