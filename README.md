@@ -65,23 +65,5 @@ mvmv '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
 ```
 (Reminder: consecutive `*` wildcards in the source glob pattern are treated as a single `*`.)
 
-Demonstration:
-```
-> ls -al
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 curly-howard-lines-s2-e2.txt
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 larry-fine-lines-season1-episode3.txt
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 moe-howard-lines-s04-ep01.txt
-
-> mvmv -v '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
-Source: **-*-lines-*?-*?.txt  Destination: *_*-lines-s?e?.txt
-Renamed curly-howard-lines-s2-e2.txt to curly_howard-lines-s2e2.txt
-Renamed larry-fine-lines-season1-episode3.txt to larry_fine-lines-s1e3.txt
-Renamed moe-howard-lines-s04-ep01.txt to moe_howard-lines-s4e1.txt
-Renamed 3 file(s)
-
-> ls -al
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 curly_howard-lines-s2e2.txt
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 larry_fine-lines-s1e3.txt
--rw-r--r--   1 user  staff     0B  3 Feb 15:57 moe_howard-lines-s4e1.txt
-
-```
+##### Demonstration
+![mvmv-demo](https://user-images.githubusercontent.com/4752832/35996412-740a9796-0ce4-11e8-9bc5-6075c6aa23ea.png)
