@@ -3,12 +3,12 @@ const fs = require('fs');
 
 function createMover() {
     /**
-     * Renames a list of files based on list of new names. Returns as soon as error encountered.
-     * @param filesList {String[]} List of files to rename
+     * Moves a list of files based on list of new names. Returns as soon as error encountered.
+     * @param filesList {String[]} List of files to move
      * @param newFilesList {String[]} List of new names
      * @param [options] {Object} For future use
-     * @param [callback] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
-     * @return {Number[]} Index of names for which rename succeeded;
+     * @param [callback] {Function} Function to be invoked after each move attempt; callback arguments: error, oldName, newName, index.
+     * @return {Number[]} Index of names for which move succeeded;
      * @throws {Error} An Error object
      */
     function commit(filesList, newFilesList, options, callback) {
@@ -27,11 +27,11 @@ function createMover() {
                     successIndexes.push(idx);
                 }
                 else {
-                    error = new Error(`Skipping rename of '${oldName}': '${newName}' already exists.`);
+                    error = new Error(`Skipping '${oldName}': '${newName}' already exists.`);
                 }
             }
             catch (e) {
-                error = new Error('Failed rename commit. ' + e.message);
+                error = new Error('Failed move commit. ' + e.message);
             }
 
             if (typeof callback === 'function') {

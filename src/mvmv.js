@@ -32,7 +32,7 @@ const interactiveMover = {
 
         src.forEach(function confirmAndCommit(oldName, idx) {
             let newName = dst[idx];
-            const answerBool = readlineSync.keyInYN(`Sure to rename \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
+            const answerBool = readlineSync.keyInYN(`Sure to move \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m ? `);
             if (answerBool) {
                 let resultArr = Mover.commit([oldName], [newName], null, (err) => {
                     if (err) {
@@ -63,17 +63,17 @@ const simulateMover = {
             // Remove the trailing '/', if any.
             let dst = dstNames[idx].endsWith('/') ? dstNames[idx].slice(0, -1) : dstNames[idx];
             if (!fs.existsSync(path.dirname(dst))) {
-                // Cannot rename if destination path does not exist
+                // Cannot move if destination path does not exist
                 printWithMode(`No such file or directory '${dst}'`);
             }
             else {
                 if (!fs.existsSync(dst) && !newNamesList.includes(dst)) {
-                    printWithMode(`Renamed \x1b[37;1m${src}\x1b[0m to \x1b[37;1m${dst}\x1b[0m`);
+                    printWithMode(`Moved \x1b[37;1m${src}\x1b[0m to \x1b[37;1m${dst}\x1b[0m`);
                     newNamesList.push(dst);
                     successList.push(idx);
                 }
                 else {
-                    printWithMode(`Skipping rename of '${src}': '${dst}' already exists.`);
+                    printWithMode(`Skipping '${src}': '${dst}' already exists.`);
                 }
             }
         });
@@ -96,7 +96,7 @@ const verboseMover = {
                     printWithMode(`${err.message}`);
                 }
                 else {
-                    printWithMode(`Renamed \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m`);
+                    printWithMode(`Moved \x1b[37;1m${oldName}\x1b[0m to \x1b[37;1m${newName}\x1b[0m`);
                 }
             });
 
@@ -117,8 +117,8 @@ let printWithMode;
 
 
 /**
- * The main function that parses the command line, prints the usage help and the rename operation's result.
- * Uses controller object to perform the actual rename operation.
+ * The main function that parses the command line, prints the usage help and the move operation's result.
+ * Uses controller object to perform the actual file moving (or renaming) operation.
  */
 function run () {
     let myMover = defaultMover;
@@ -127,13 +127,13 @@ function run () {
     commandLine
     .version('0.9.0')
     .name('mvmv')
-    .description('mvmv command renames files specified by <source> to destination names specified by <target>.\n' +
-        '  The file will not be renamed if a file with the same name already exists.\n' +
-        '  mvmv supports * and ? globbing wildcards for specifying file name pattern.\n' +
-        '  If wildcards are used, <source> and <target> must be wrapped in quotes, unless on Windows.\n' +
-        '  Multiple consecutive * wildcards in <source> are treated as one single * wildcard.')
-    .option('-i, --interactive', 'Prompts for confirmation before each rename operation.')
-    .option('-s, --simulate', 'Dry-runs the rename operations without affecting the file system.')
+    .description('mvmv command moves (or renames) files specified by <source> to destination names specified by <target>.\n' +
+        '  mvmv supports * and ? globbing wildcards for specifying file names pattern.\n' +
+        '  If wildcards are used, <source> and <target> must be wrapped in quotes.\n' +
+        '  Multiple consecutive * wildcards in <source> are treated as one single * wildcard.\n' +
+        '  The file will not be moved if a file with the same name already exists at the target location.')
+    .option('-i, --interactive', 'Prompts for confirmation before each move operation.')
+    .option('-s, --simulate', 'Dry-runs the move operations without affecting the file system.')
     .option('-v, --verbose', 'Prints additional operation details.')
     .arguments('<source> <target>')
     .parse(process.argv);
@@ -162,7 +162,7 @@ function run () {
         printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
     }
 
-    // Use controller object to perform the rename operation
+    // Use controller object to perform the move operation
     const myController = Controller.create(null, null, myMover);
     try {
         result = myController.exec(srcGlob, dstGlob);
@@ -176,7 +176,7 @@ function run () {
         printWithMode(`Target file not found.`);
     }
     else if (Number.isFinite(result)) {
-        printWithMode(`\x1b[36mRenamed ${result} file(s)\x1b[0m`);
+        printWithMode(`\x1b[36mMoved ${result} file(s)\x1b[0m`);
     }
 }
 

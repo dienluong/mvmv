@@ -5,7 +5,7 @@ const DefaultRenamer = require('./mv-renamer');
 const DefaultMover  = require('./mv-mover');
 
 /**
- * Creates a mv-controller object that renames files on file system using glob patterns.
+ * Creates a mv-controller object that moves files on file system using glob patterns.
  * @param [parser] {Object} Object with a resolve(glob) method where:
  *                                  'glob' is a string.
  * @param [renamer] {Object} Object with a computeName(names, srcGlob, dstGlob) method where:
@@ -31,7 +31,7 @@ function createController(parser, renamer, mover) {
         return _renamer.computeName(filenames, srcGlob, dstGlob);
     }
 
-    function _renameFiles(oldFilenames, newFilenames, callback) {
+    function _moveFiles(oldFilenames, newFilenames, callback) {
         callback = typeof callback === 'function' ? callback : null;
         return _mover.commit(oldFilenames, newFilenames, null, callback);
     }
@@ -50,12 +50,12 @@ function createController(parser, renamer, mover) {
     }
 
     /**
-     * Performs files rename on file system.
+     * Moves files on file system.
      * @method exec
-     * @param src {String} Glob pattern specifying files to rename
+     * @param src {String} Glob pattern specifying files to move
      * @param dst {String} Glob pattern characterizing the new names
-     * @param [cb] {Function} Function to be invoked after each rename attempt; callback arguments: error, oldName, newName, index.
-     * @return {Number | null} Number of successful renames. Null if no source file found.
+     * @param [cb] {Function} Function to be invoked after each move attempt; callback arguments: error, oldName, newName, index.
+     * @return {Number | null} Number of successful move operations. Null if no source file found.
      * @throws {Error} An Error object
      */
     function exec(src, dst, cb) {
@@ -83,7 +83,7 @@ function createController(parser, renamer, mover) {
         filenames = _fetchFilenames(srcPattern);
         if (filenames.length) {
             newFilenames = _buildNewFilenames(filenames, srcPattern, dstPattern);
-            successList = _renameFiles(filenames, newFilenames, cb);
+            successList = _moveFiles(filenames, newFilenames, cb);
             returnVal = successList.length;
         }
         else {
