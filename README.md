@@ -12,7 +12,7 @@ const mvmv = require('mvmv').create();
 mvmv.exec('*.txt', 'temp/*.old');
 ```
 
-`mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files renamed (returns NULL if file not found).
+`mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files moved (returns NULL if file not found).
 
 ## Command-line Usage
 With package installed globally:
@@ -29,19 +29,19 @@ Execute the `mvmv` command without argument to see the usage information:
 
 ```
   Usage: mvmv [options] <source> <target>
-  
-  mvmv command renames files specified by <source> to destination names specified by <target>.
-  The file will not be renamed if a file with the same name already exists.
-  mvmv supports * and ? globbing wildcards for specifying file name pattern.
-  If wildcards are used, <source> and <target> must be wrapped in quotes, unless on Windows.
+
+  mvmv command moves (or renames) files specified by <source> to destination names specified by <target>.
+  mvmv supports * and ? globbing wildcards for specifying file names pattern.
+  If wildcards are used, <source> and <target> must be wrapped in quotes.
   Multiple consecutive * wildcards in <source> are treated as one single * wildcard.
- 
- 
+  The file will not be moved if a file with the same name already exists at the target location.
+
+
   Options:
- 
+
     -V, --version      output the version number
-    -i, --interactive  Prompts for confirmation before each rename operation.
-    -s, --simulate     Dry-runs the rename operations without affecting the file system.
+    -i, --interactive  Prompts for confirmation before each move operation.
+    -s, --simulate     Dry-runs the move operations without affecting the file system.
     -v, --verbose      Prints additional operation details.
     -h, --help         output usage information
 ```
@@ -67,4 +67,4 @@ mvmv '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
 (Reminder: consecutive `*` wildcards in the source glob pattern are treated as a single `*`.)
 
 ##### Demonstration
-![mvmv-demo](https://user-images.githubusercontent.com/4752832/35996795-780c4406-0ce5-11e8-8e8b-4a27b1319bf5.png)
+![mvmv-demo2](https://user-images.githubusercontent.com/4752832/36003521-7940605c-0cfc-11e8-8d5d-0ad5ab1eba71.png)
