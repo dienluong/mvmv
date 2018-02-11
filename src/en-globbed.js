@@ -1,6 +1,5 @@
 'use strict';
 
-const glToRe  = require('glob-to-regexp');
 const globGroupsCollectionInterface = require('./globGroupsCollectionInterface');
 
 /**
@@ -80,11 +79,20 @@ function deconstruct(glob, options) {
     return groups;
 }
 
+/**
+ * Perform regex character escaping on provided string.
+ * @private
+ * @param glob {String} String to escape
+ * @return {String} String with characters properly escaped for regex.
+ */
+function _escapeRegexChars(glob) {
+    // Note: '\' must not be escaped because it's already escaped within the glob pattern.
+    return glob.replace(/[-[\]{}()+.\/^$|]/g, '\\$&');
+}
 
 /**
  * Convert glob into regex with capture groups.
  * Example: abc?123.*DEF --> /(abc)(.)(123\.)(.*)(DEF)/
- * @method _convertToRegExWithCaptureGroups
  * @private
  * @param glob {String} The glob pattern to convert
  * @return {RegExp} Regular expression with capture groups added to the various parts
@@ -102,13 +110,7 @@ function _convertToRegExWithCaptureGroups(glob) {
                     return '(.)';
                     break;
                 default:
-                    // Work around a bug with glob-to-regexp.
-                    // The bug: a glob pattern bob\\pete, which matches bob\pete, would be converted to /^bob\\\\pete$/ which matches bob\\pete.
-                    p = p.replace(/\\{2}/g, '\\');
-                    // Escape all characters that must be escaped by using glob-to-regexp module
-                    p = glToRe(p).source;
-                    // Removes ^ and $ from the regexp source produced by glob-to-regexp
-                    p = p.length > 2 ? p.slice(1, p.length - 1) : p;
+                    p = _escapeRegexChars(p);
                     return `(${p})`;
             }
         }
