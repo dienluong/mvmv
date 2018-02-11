@@ -5,6 +5,12 @@ A NodeJS package that performs batch renaming and moving of files. It supports g
 
 You can use the package by importing it into your NodeJS scripts or as a command on the terminal.
 
+## Motivation
+The typical implementations of the linux mv command do not support this rather intuitive usage:
+```bash
+> mv *.txt *.old
+```
+
 ## In-code Usage
 ```javascript
 const mvmv = require('mvmv').create();
