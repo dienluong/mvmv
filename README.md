@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/dienluong/mvmv.svg?branch=master)](https://travis-ci.org/dienluong/mvmv) [![Build status](https://ci.appveyor.com/api/projects/status/a5yh2m947yqt5v42?svg=true)](https://ci.appveyor.com/project/dienluong/mvmv)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/dienluong/mvmv.svg?branch=master)](https://travis-ci.org/dienluong/mvmv) [![Build status](https://ci.appveyor.com/api/projects/status/a5yh2m947yqt5v42?svg=true)](https://ci.appveyor.com/project/dienluong/mvmv) [![Known Vulnerabilities](https://snyk.io/test/github/dienluong/mvmv/badge.svg?targetFile=package.json)](https://snyk.io/test/github/dienluong/mvmv?targetFile=package.json) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
  
 # mvmv
 A NodeJS package that performs batch renaming and moving of files. It supports globbing [wildcards](http://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) `*` and `?`.
