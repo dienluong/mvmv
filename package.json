@@ -10,10 +10,12 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "coveralls": "^3.0.0",
     "globby": "^6.1.0",
     "mocha": "^3.5.3",
     "mock-fs": "^4.4.2",
     "natural-filename-generator": "^1.0.0",
+    "nyc": "^11.4.1",
     "sinon": "^2.4.1"
   },
   "repository": {
@@ -21,7 +23,8 @@
     "url": "https://github.com/dienluong/mvmv.git"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
     "mvmv": "./src/mv-cmd.js"

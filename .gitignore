@@ -4,5 +4,6 @@ test/test-data2
 test/setup
 tmp
 .idea
+.nyc_output
 .DS_Store
 *.history
