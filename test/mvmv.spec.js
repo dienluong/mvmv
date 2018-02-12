@@ -603,9 +603,9 @@ describe('mvmv', function () {
             expect(globby.sync(path.join('test', 'test-data2', '*'))).to.be.empty;
         });
 
-        // The following test does not work with mock-fs on Windows.
-        // Perform a manual test instead.
-        if (process.platform !== 'win32') {
+        // The following test does not work with mock-fs on Windows. Perform a manual test instead.
+        // To enable this test case: env MVMV_TEST_MODE=interactive npm test
+        if ((process.platform !== 'win32') && (process.env.MVMV_TEST_MODE === 'interactive') ) {
             it('should ask for confirmation for each operation, when in --interactive mode', function () {
                 let srcGlob = path.join(TEST_PATH, '*.js');
                 let dstGlob = path.join(TEST_PATH, '*.old');
