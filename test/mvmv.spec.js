@@ -12,7 +12,7 @@ const FilenameGen   = require('natural-filename-generator');
 const expect        = require('chai').expect;
 const sinon         = require('sinon');
 const TEST_PATH     = path.join('test', 'test-data');
-
+const IS_WINOS      = process.platform === 'win32';
 
 /**
  * Resets the 'commander' module by reloading both the mvmv module and 'commander' in this module.
@@ -151,7 +151,7 @@ describe('mvmv', function () {
         it('should handle backward-slash \\ character correctly, according to operating system', function () {
             let srcGlob = 'test\\\\test-data\\dot*.?.*';
             let dstGlob = 'test\\test-data2\\\\bot*.?';
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(globby.sync(srcGlob).length).to.eql(4);
             }
             else {
@@ -159,7 +159,7 @@ describe('mvmv', function () {
             }
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(globby.sync(srcGlob)).to.be.empty;
                 expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
                 expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
@@ -175,7 +175,7 @@ describe('mvmv', function () {
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
             expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(globby.sync('test\\test-data\\*.JS').length).to.eql(2);
             }
             else {
@@ -192,7 +192,7 @@ describe('mvmv', function () {
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
             // On Windows: afile.JS/ would be successfully written as afile.JS
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(console.log.lastCall.calledWith(`\x1b[36mMoved 2 file(s)\x1b[0m`)).to.be.true;
                 expect(globby.sync(srcGlob)).to.be.empty;
                 expect(globby.sync('test\\test-data2\\*.JS').length).to.eql(2);
@@ -210,7 +210,7 @@ describe('mvmv', function () {
             dstGlob = 'test\\test-data\\^onecaret.up^\\\\';
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(globby.sync(srcGlob).length).to.eql(1);
                 expect(console.log.withArgs(`Skipping 'test/test-data/^onecaret.up^': 'test/test-data/^onecaret.up^' already exists.`).calledOnce).to.be.true;
                 expect(console.log.lastCall.calledWith(`\x1b[36mMoved 0 file(s)\x1b[0m`)).to.be.true;
@@ -296,7 +296,7 @@ describe('mvmv', function () {
             expect(srcFiles.length).to.eql(1);
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 // Move should fail because 'test/test-data2' already exists.
                 expect(console.log.withArgs(`Skipping '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
                 expect(console.log.lastCall.calledWith(`\x1b[36mMoved 0 file(s)\x1b[0m`)).to.be.true;
@@ -341,7 +341,7 @@ describe('mvmv', function () {
             srcFiles = globby.sync(srcGlob);
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(console.log.withArgs(`Skipping '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
                 // Expect no change in src folder's content
                 expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
@@ -387,7 +387,7 @@ describe('mvmv', function () {
             expect(globby.sync(dstGlob).length).to.eql(1);
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
-            if (process.platform === 'win32') {
+            if (IS_WINOS) {
                 expect(console.log.withArgs(`Skipping '${srcFiles[0]}': 'test/test-data2' already exists.`).calledOnce).to.be.true;
                 // Expect no change in src folder's content
                 expect(globby.sync(srcGlob).length).to.eql(srcFiles.length);
@@ -605,7 +605,7 @@ describe('mvmv', function () {
 
         // The following test does not work with mock-fs on Windows. Perform a manual test instead.
         // To enable this test case: env MVMV_TEST_MODE=interactive npm test
-        if ((process.platform !== 'win32') && (process.env.MVMV_TEST_MODE === 'interactive') ) {
+        if (!IS_WINOS && (process.env.MVMV_TEST_MODE === 'interactive') ) {
             it('should ask for confirmation for each operation, when in --interactive mode', function () {
                 let srcGlob = path.join(TEST_PATH, '*.js');
                 let dstGlob = path.join(TEST_PATH, '*.old');
@@ -613,6 +613,8 @@ describe('mvmv', function () {
                 // Disable Mocha timeouts for this test
                 this.timeout(0);
                 sinon.spy(readlineSync, 'keyInYN');
+
+                // process.nextTick(() => process.stdin.write('y'));
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
                 mvmv.run();
                 expect(readlineSync.keyInYN.calledTwice).to.be.true;
