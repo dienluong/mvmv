@@ -609,6 +609,7 @@ describe('mvmv', function () {
             it('should ask for confirmation for each operation, when in --interactive mode', function () {
                 let srcGlob = path.join(TEST_PATH, '*.js');
                 let dstGlob = path.join(TEST_PATH, '*.old');
+                let times = globby.sync(srcGlob).length;
 
                 // Disable Mocha timeouts for this test
                 this.timeout(0);
@@ -617,7 +618,7 @@ describe('mvmv', function () {
                 // process.nextTick(() => process.stdin.write('y'));
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
                 mvmv.run();
-                expect(readlineSync.keyInYN.calledTwice).to.be.true;
+                expect(readlineSync.keyInYN.callCount).to.eql(times);
                 expect(console.log.lastCall.calledWith(sinon.match(`Moved`))).to.be.true;
                 readlineSync.keyInYN.restore();
             });
