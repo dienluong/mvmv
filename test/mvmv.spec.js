@@ -611,8 +611,6 @@ describe('mvmv', function () {
                 let dstGlob = path.join(TEST_PATH, '*.old');
                 let times = globby.sync(srcGlob).length;
 
-                // Disable Mocha timeouts for this test
-                this.timeout(0);
                 sinon.spy(readlineSync, 'keyInYN');
 
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
