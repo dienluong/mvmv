@@ -4,20 +4,20 @@
   "description": "Batch moving and renaming files using globbing patterns.",
   "main": "./src/mv-controller.js",
   "dependencies": {
-    "commander": "^2.12.2",
+    "commander": "^2.14.1",
     "glob": "^7.1.2",
-    "readline-sync": "^1.4.7"
+    "readline-sync": "^1.4.9"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "coveralls": "^3.0.0",
     "globby": "^6.1.0",
-    "mocha": "^3.5.3",
+    "mocha": "^5.0.1",
     "mock-fs": "^4.4.2",
     "natural-filename-generator": "^1.0.0",
-    "nyc": "^11.4.1",
+    "nyc": "^11.5.0",
     "robotjs": "^0.4.7",
-    "sinon": "^2.4.1"
+    "sinon": "^4.3.0"
   },
   "repository": {
     "type": "git",
