@@ -3,6 +3,7 @@
 let mvmv            = require('../src/mvmv');
 let commander       = require('commander');
 const readlineSync  = require('readline-sync');
+const robot         = require('robotjs');
 
 const path          = require('path').posix;
 const fs            = require('fs');
@@ -614,7 +615,9 @@ describe('mvmv', function () {
                 sinon.spy(readlineSync, 'keyInYN');
 
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
-                require('child_process').fork('./misc/mvmv-child.js', { stdio: 'inherit' });
+                // require('child_process').fork('./misc/mvmv-child.js', { stdio: 'inherit' });
+                robot.keyTap('y');
+                robot.keyTap('y');
 
                 mvmv.run();
                 expect(readlineSync.keyInYN.callCount).to.eql(times);
