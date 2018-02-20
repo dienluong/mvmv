@@ -1,5 +1,24 @@
+env:
+  - CXX=g++-4.8
 language: node_js
 node_js:
   - "8"
   - "node"
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libx11-dev
+      - zlib1g-dev
+      - libpng12-dev
+      - libxtst-dev
+      - g++-4.8
+      - gcc-4.8
+
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+
 after_success: npm run coverage
