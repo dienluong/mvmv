@@ -1,5 +1,5 @@
 env:
-  - CXX=g++-4.8
+  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then CXX=g++-4.8; fi
 os: osx
 language: node_js
 node_js:
