@@ -425,7 +425,7 @@ describe('mvmv', function () {
             let srcFiles = globby.sync(srcGlob);
             expect(srcFiles.length).to.eql(2);
             dstGlob = path.join(TEST_PATH, 'newName.jpg');
-            expect(globby.sync(dstGlob).length).to.be.empty;
+            expect(globby.sync(dstGlob)).to.be.empty;
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
             mvmv.run();
             expect(console.log.withArgs(`Skipping '${srcFiles[1]}': '${dstGlob}' already exists.`).calledOnce).to.be.true;
@@ -617,11 +617,13 @@ describe('mvmv', function () {
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
                 // require('child_process').fork('./misc/mvmv-child.js', { stdio: 'inherit' });
                 robot.keyTap('y');
-                robot.keyTap('y');
+                for (let i = times - 1; i > 0; i -= 1 ) {
+                    robot.keyTap('n');
+                }
 
                 mvmv.run();
                 expect(readlineSync.keyInYN.callCount).to.eql(times);
-                expect(console.log.lastCall.calledWith(sinon.match(`Moved`))).to.be.true;
+                expect(console.log.lastCall.calledWith(sinon.match(`Moved 1 file(s)`))).to.be.true;
                 readlineSync.keyInYN.restore();
             });
         }
