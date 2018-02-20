@@ -16,6 +16,7 @@
     "mock-fs": "^4.4.2",
     "natural-filename-generator": "^1.0.0",
     "nyc": "^11.4.1",
+    "robotjs": "^0.4.7",
     "sinon": "^2.4.1"
   },
   "repository": {

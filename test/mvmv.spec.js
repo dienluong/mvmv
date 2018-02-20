@@ -615,8 +615,9 @@ describe('mvmv', function () {
                 this.timeout(0);
                 sinon.spy(readlineSync, 'keyInYN');
 
-                // process.nextTick(() => process.stdin.write('y'));
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
+                require('child_process').fork('./misc/mvmv-child.js', { stdio: 'inherit' });
+
                 mvmv.run();
                 expect(readlineSync.keyInYN.callCount).to.eql(times);
                 expect(console.log.lastCall.calledWith(sinon.match(`Moved`))).to.be.true;

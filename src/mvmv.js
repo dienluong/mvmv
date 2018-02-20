@@ -143,9 +143,13 @@ function run () {
         return;
     }
 
+    const srcGlob = commandLine.args[0];
+    const dstGlob = commandLine.args[1];
     printWithMode = _printWithPrefix.bind(null, '');
+
     if (commandLine.verbose) {
         myMover = verboseMover;
+        printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
     }
     else if (commandLine.interactive) {
         myMover = interactiveMover;
@@ -153,12 +157,6 @@ function run () {
     else if (commandLine.simulate) {
         myMover = simulateMover;
         printWithMode = _printWithPrefix.bind(null, '[Simulate] ');
-    }
-
-    const srcGlob = commandLine.args[0];
-    const dstGlob = commandLine.args[1];
-
-    if (commandLine.verbose || commandLine.simulate) {
         printWithMode(`\x1b[36mSource:\x1b[0m ${srcGlob}  \x1b[36mDestination\x1b[0m: ${dstGlob}`);
     }
 
