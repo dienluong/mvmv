@@ -605,7 +605,7 @@ describe('mvmv', function () {
 
         // The following test does not work with mock-fs on Windows. Perform a manual test instead.
         // To enable this test case: env MVMV_TEST_MODE=interactive npm test
-        if (!IS_WINOS && (process.env.MVMV_TEST_MODE === 'interactive') ) {
+        if (!IS_WINOS) {
             it('should ask for confirmation for each operation, when in --interactive mode', function () {
                 let srcGlob = path.join(TEST_PATH, '*.js');
                 let dstGlob = path.join(TEST_PATH, '*.old');
