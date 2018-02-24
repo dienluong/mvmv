@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/dienluong/mvmv.svg?branch=master)](https://travis-ci.org/dienluong/mvmv) [![Build status](https://ci.appveyor.com/api/projects/status/a5yh2m947yqt5v42?svg=true)](https://ci.appveyor.com/project/dienluong/mvmv) [![Known Vulnerabilities](https://snyk.io/test/github/dienluong/mvmv/badge.svg?targetFile=package.json)](https://snyk.io/test/github/dienluong/mvmv?targetFile=package.json) [![Coverage Status](https://coveralls.io/repos/github/dienluong/mvmv/badge.svg?branch=master)](https://coveralls.io/github/dienluong/mvmv?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
  
 # mvmv
-A NodeJS package that performs batch renaming and moving of files. It supports globbing [wildcards](http://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) `*` and `?`.
+A [NodeJS](https://nodejs.org) package that performs batch renaming and moving of files, with support for globbing [wildcards](http://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) `*` and `?`.
 
 You can use the package by importing it into your NodeJS scripts or as a command on the terminal.
 
@@ -11,14 +11,28 @@ The typical implementations of the linux mv command do not support this rather i
 > mv *.txt *.old
 ```
 
+## Installation
+Installation is straightforward, like most [NPM](https://www.npmjs.com/) packages.
+
+Install `mvmv` globally to use it as a command line tool anywhere on the command console:
+```bash
+> npm install -g mvmv
+```
+
+Install it as a dependency to use it in your code:
+```bash
+> npm install --save mvmv
+```
+
 ## In-code Usage
+`mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files moved (returns NULL if file not found).
+
+##### Example
 ```javascript
 const mvmv = require('mvmv').create();
 
 mvmv.exec('*.txt', 'temp/*.old');
 ```
-
-`mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files moved (returns NULL if file not found).
 
 ## Command-line Usage
 With package installed globally:
@@ -26,12 +40,7 @@ With package installed globally:
 > mvmv '*.txt' 'temp/*.old'
 ````
 
-With package installed locally:
-```bash
-> npx mvmv '*.txt' 'temp/*.old'
-```
-
-Execute the `mvmv` command without argument to see the usage information:
+Execute the `mvmv` command without argument to display the usage information:
 
 ```
   Usage: mvmv [options] <source> <target>
@@ -52,10 +61,17 @@ Execute the `mvmv` command without argument to see the usage information:
     -h, --help         output usage information
 ```
 
+
+>##### Tip!
+>You can invoke `mvmv` without prior installing it by using [npx](https://www.npmjs.com/package/npx) (bundled with NPM since v5.2.0):
+>```bash
+>> npx mvmv '*.txt' 'temp/*.old'
+>```
+
 ## Caveats
-- mvmv does not overwrite existing files.
-- mvmv treats consecutive `*` wildcard in the source glob pattern as a single `*`. (This does not apply to the destination glob pattern.)
-- globbing patterns on the command line must be enclosed in quotes to prevent wildcard expansion by the shell. An alternative is to turn off shell globbing. Please consult this StackOverflow [thread](https://stackoverflow.com/a/22945024) for more information.
+- `mvmv` does not overwrite existing files.
+- `mvmv` treats consecutive `*` wildcard in the source glob pattern as a single `*`. (This does not apply to the destination glob pattern.)
+- globbing patterns on the command line must be enclosed in quotes to prevent wildcard expansion by the shell. An alternative is to turn shell globbing off. See StackOverflow [thread](https://stackoverflow.com/a/22945024) for more information.
 
 
 ## How It Works
