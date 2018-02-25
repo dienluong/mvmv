@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 
-const mvmv = require('./mvmv');
+const mvmv = require('../src/mvmv');
 mvmv.run();
