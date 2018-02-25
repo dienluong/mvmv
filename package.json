@@ -1,6 +1,6 @@
 {
   "name": "mvmv",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Batch moving and renaming files using globbing patterns.",
   "main": "./src/mv-controller.js",
   "dependencies": {
@@ -28,7 +28,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
-    "mvmv": "./src/mv-cmd.js"
+    "mvmv": "./bin/mv-cmd.js"
   },
   "keywords": [
     "rename",

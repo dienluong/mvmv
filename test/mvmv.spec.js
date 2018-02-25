@@ -615,7 +615,6 @@ describe('mvmv', function () {
                 sinon.spy(readlineSync, 'keyInYN');
 
                 process.argv = [process.execPath, 'mvmv.js', '--interactive', srcGlob, dstGlob];
-                // require('child_process').fork('./misc/mvmv-child.js', { stdio: 'inherit' });
                 robot.keyTap('y');
                 for (let i = times - 1; i > 0; i -= 1 ) {
                     robot.keyTap('n');

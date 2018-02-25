@@ -3,6 +3,7 @@ test/test-data
 test/test-data2
 test/setup
 tmp
+misc
 .idea
 .nyc_output
 .DS_Store
