@@ -1,6 +1,6 @@
 {
   "name": "mvmv",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Batch moving and renaming files using globbing patterns.",
   "main": "./src/mv-controller.js",
   "dependencies": {
