@@ -45,7 +45,7 @@ function createRenamer() {
 
         // Check if destination glob has more * and/or ? wildcards than source glob does...
         if ((dstWildcardsCount.stars > srcWildcardsCount.stars) || (dstWildcardsCount.questions > srcWildcardsCount.questions)) {
-            throw new Error('Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+            throw new Error('Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
         }
 
         // extract matches for each wildcard (and literal) parts of the source glob

@@ -128,35 +128,35 @@ describe('When number of given wildcard in destination glob is higher than in so
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('^$', '??', '???');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('^bruce.wayne$', '*?*', '??');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('^bruce.wayne$', '*.wayne?', '??');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('uvwxyz', 'uvwxyz', '123456?');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
 
             /************ # of * in SG < in DG ************/
@@ -165,14 +165,14 @@ describe('When number of given wildcard in destination glob is higher than in so
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('.', '?', '?*');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             // ** is src glob counts as * ; but ** in dst glob remains unchanged
             try {
@@ -180,7 +180,7 @@ describe('When number of given wildcard in destination glob is higher than in so
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             // ***b* -> *b* in src glob; but *** in dst glob remains unchanged
             try {
@@ -188,21 +188,21 @@ describe('When number of given wildcard in destination glob is higher than in so
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('abc', '*ab**', '***');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
             try {
                 this.myRenamer.computeName('uvwxyz', 'uvwxyz', '123456*');
             }
             catch (e) {
                 expect(e).to.be.instanceof(Error)
-                .and.have.property('message', 'Invalid glob pattern. Destination glob contains more wildcards than source. (** is treated as * in source glob.)');
+                .and.have.property('message', 'Invalid glob pattern. Destination glob contains incorrect number or type of wildcard. (** is treated as * in source glob.)');
             }
 
             expect(this.myRenamer.computeName.alwaysThrew('Error')).to.be.true;
