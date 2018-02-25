@@ -125,7 +125,7 @@ function run () {
     let result;
 
     commandLine
-    .version('0.9.0')
+    .version('0.9.5')
     .name('mvmv')
     .description('mvmv command moves (or renames) files specified by <source> to destination names specified by <target>.\n' +
         '  mvmv supports * and ? globbing wildcards for specifying file names pattern.\n' +
