@@ -15,7 +15,7 @@ The typical implementations of the linux mv command do not support this rather i
 ```
 
 ## Installation
-Installation is straightforward, like most [NPM](https://www.npmjs.com/) packages.
+Installation is straightforward, as with most [NPM](https://www.npmjs.com/) packages.
 
 Install `mvmv` globally to use it as a command line tool anywhere on the command console:
 ```bash
