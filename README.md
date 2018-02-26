@@ -5,6 +5,9 @@ A [NodeJS](https://nodejs.org) package that performs batch renaming and moving o
 
 You can use the package by importing it into your NodeJS scripts or as a command on the terminal.
 
+> ##### Note:
+> Go on [github](https://github.com/dienluong/mvmv) for the latest version of this documentation.
+
 ## Motivation
 The typical implementations of the linux mv command do not support this rather intuitive usage:
 ```bash
@@ -26,6 +29,8 @@ Install it as a dependency to use it in your code:
 
 ## In-code Usage
 `mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files moved (returns NULL if file not found).
+
+The callback is invoked after a move/rename attempt on an **individual** file. The arguments passed to the callback are: `error`, `oldPath`, `newPath`, `index`. `index` is the zero-based position of the file in the batch of files to be processed. 
 
 ##### Example
 ```javascript
