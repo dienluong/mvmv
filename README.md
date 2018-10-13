@@ -94,4 +94,4 @@ mvmv '**-*-lines-*?-*?.txt' '*_*-lines-s?e?.txt'
 (Reminder: consecutive `*` wildcards in the source glob pattern are treated as a single `*`.)
 
 ##### Demonstration
-![mvmv-demo2](https://user-images.githubusercontent.com/4752832/36003521-7940605c-0cfc-11e8-8d5d-0ad5ab1eba71.png)
+![mvmv-demo2](https://user-images.githubusercontent.com/4752832/46907844-fb606a80-cee6-11e8-824b-f58878a92a44.png)
