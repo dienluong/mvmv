@@ -1,9 +1,13 @@
 'use strict';
 
+const IS_WINOS      = process.platform === 'win32';
+const IS_DARWIN     = process.platform === 'darwin';
 let mvmv            = require('../src/mvmv');
 let commander       = require('commander');
 const readlineSync  = require('readline-sync');
-const robot         = require('robotjs');
+if (IS_DARWIN) {
+    const robot     = require('robotjs');
+}
 
 const path          = require('path').posix;
 const fs            = require('fs');
@@ -13,7 +17,6 @@ const FilenameGen   = require('natural-filename-generator');
 const expect        = require('chai').expect;
 const sinon         = require('sinon');
 const TEST_PATH     = path.join('test', 'test-data');
-const IS_WINOS      = process.platform === 'win32';
 
 /**
  * Resets the 'commander' module by reloading both the mvmv module and 'commander' in this module.
@@ -606,7 +609,7 @@ describe('mvmv', function () {
 
         // The following test does not work with mock-fs on Windows, nor on Travis CI. Perform a manual test instead.
         // To enable this test case: env MVMV_TEST_MODE=interactive npm test
-        if (!IS_WINOS && (process.env.MVMV_TEST_MODE === 'interactive')) {
+        if (IS_DARWIN && (process.env.MVMV_TEST_MODE === 'interactive')) {
             it('should ask for confirmation for each operation, when in --interactive mode', function () {
                 let srcGlob = path.join(TEST_PATH, '*.js');
                 let dstGlob = path.join(TEST_PATH, '*.old');
