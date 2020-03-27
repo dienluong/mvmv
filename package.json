@@ -13,10 +13,10 @@
     "coveralls": "^3.0.2",
     "globby": "^6.1.0",
     "mocha": "^5.0.1",
-    "mock-fs": "^4.7.0",
+    "mock-fs": "^4.11.0",
     "natural-filename-generator": "^1.0.0",
     "nyc": "^15.0.0",
-    "robotjs": "^0.5.1",
+    "robotjs": "^0.6.0",
     "sinon": "^4.3.0"
   },
   "repository": {
