@@ -238,7 +238,7 @@ describe('mvmv', function () {
             expect(console.log.lastCall.calledWith(`\x1b[36mMoved 2 file(s)\x1b[0m`)).to.be.true;
 
             // Case with trailing '/' in source
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test////test-data///*.js///';
             dstGlob = 'test//test-data2/*.js';
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
@@ -248,7 +248,7 @@ describe('mvmv', function () {
             expect(console.log.lastCall.calledWith(`Target file not found.`)).to.be.true;
 
             // Case with trailing '/' in destination, but destination does not already exist
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test//test-data/$$twodollars.js$$';
             dstGlob = 'test///test-data2/bob////';
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
@@ -261,7 +261,7 @@ describe('mvmv', function () {
             expect(console.log.lastCall.calledWith(`\x1b[36mMoved 1 file(s)\x1b[0m`)).to.be.true;
 
             // Case with trailing '/' in destination, when destination already exists
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test/test-data/$onedollar.tm$';
             dstGlob = 'test//test-data/$onedollar.tm$////';
             process.argv = [process.execPath, 'mvmv.js', srcGlob, dstGlob];
@@ -293,7 +293,7 @@ describe('mvmv', function () {
             expect(globby.sync(starGlob)).to.have.members(allFiles);
 
             // Case where destination is a folder
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test///test-data//^^twocarets.hi^^';
             dstGlob = 'test\\\\test-data2';
             let srcFiles = globby.sync(srcGlob);
@@ -326,7 +326,7 @@ describe('mvmv', function () {
             sinon.spy(commander, 'outputHelp');
 
             // Case with trailing '\' in source folder name
-            console.log.reset();
+            console.log.resetHistory();
             allFiles = globby.sync(starGlob);
             srcGlob = 'test\\test-data\\\\';
             dstGlob = 'test/test-data2/a.file';
@@ -339,7 +339,7 @@ describe('mvmv', function () {
             expect(globby.sync(dstGlob)).to.be.empty;
 
             // Case with trailing '\' in destination folder name
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test/test-data/dotdotnames2.z..';
             dstGlob = 'test\\test-data2\\\\\\';
             srcFiles = globby.sync(srcGlob);
@@ -372,7 +372,7 @@ describe('mvmv', function () {
             sinon.spy(commander, 'outputHelp');
 
             // Case with trailing '/' in source folder name
-            console.log.reset();
+            console.log.resetHistory();
             allFiles = globby.sync(starGlob);
             srcGlob = 'test///test-data///';
             dstGlob = 'test\\test-data2\\\\\\a.file';
@@ -384,7 +384,7 @@ describe('mvmv', function () {
             expect(globby.sync('test/test-data2/*')).to.be.empty;
 
             // Case with trailing '/' in destination folder name
-            console.log.reset();
+            console.log.resetHistory();
             srcGlob = 'test\\\\\\test-data\\\\dotnames2.a.b';
             dstGlob = 'test///test-data2///';
             srcFiles = globby.sync(srcGlob);
