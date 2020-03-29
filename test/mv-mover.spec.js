@@ -351,7 +351,7 @@ describe('mv-mover', function () {
                 });
         });
 
-        it('should, on successful move, return a Promise resolving to number of files successfully moved', function (done) {
+        it('should, on successful move, return a Promise resolving to number of files successfully moved', async function () {
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.doc');
             const filesList   = this.myParser.resolve(srcPattern);
@@ -359,59 +359,62 @@ describe('mv-mover', function () {
                 return name.replace(/\.txt$/, '.doc');
             });
 
-            this.myMover.commitAsync(filesList, newFilesList)
-                .then(val => {
-                    // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
-                    expect(globby.sync(srcPattern)).to.be.empty;
-                    expect(this.myParser.resolve(srcPattern)).to.be.empty;
-                    expect(globby.sync(dstPattern)).to.have.members(newFilesList);
-                    expect(this.myParser.resolve(dstPattern)).to.have.members(newFilesList);
-                    expect(this.myParser.resolve(dstPattern).length).to.eql(newFilesList.length);
-                    newFilesList.forEach(function (name) {
-                        expect(fs.existsSync(name)).to.be.true;
-                    });
-                    filesList.forEach(function (name) {
-                        expect(fs.existsSync(name)).to.be.false;
-                    });
-
-                    // the number of files successfully moved should equal to the number of globbed files
-                    expect(val).to.eql(filesList.length);
-                    done();
-                })
-                .catch(err => {
-                    console.log(err);
-                    done(err);
+            try {
+                const resolved = await this.myMover.commitAsync(filesList, newFilesList);
+                // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
+                expect(globby.sync(srcPattern)).to.be.empty;
+                expect(this.myParser.resolve(srcPattern)).to.be.empty;
+                expect(globby.sync(dstPattern)).to.have.members(newFilesList);
+                expect(this.myParser.resolve(dstPattern)).to.have.members(newFilesList);
+                expect(this.myParser.resolve(dstPattern).length).to.eql(newFilesList.length);
+                newFilesList.forEach(function (name) {
+                    expect(fs.existsSync(name)).to.be.true;
                 });
+                filesList.forEach(function (name) {
+                    expect(fs.existsSync(name)).to.be.false;
+                });
+
+                // the number of files successfully moved should equal to the number of globbed files
+                expect(resolved).to.eql(filesList.length);
+            }
+            catch(err) {
+                console.log(err);
+                expect.fail(err, filesList.length, 'should not throw');
+            }
         });
 
-        it('should, when target already exist, return Promise rejected to array of Error in relevant slots', function (done) {
+        it('should, when target already exist, return Promise rejected to array of Error in relevant slots', async function () {
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.txt');
             const filesList   = this.myParser.resolve(srcPattern);
+            let success = false;
 
-            // filesList contains two files and renaming them to the same file name will fail.
-            this.myMover.commitAsync(filesList, filesList)
-                .then(() => {
-                    done(new Error('Expect promise to reject, not resolve'))
-                })
-                .catch(arr => {
-                    // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
-                    expect(globby.sync(srcPattern)).to.be.not.empty;
-                    expect(this.myParser.resolve(srcPattern)).to.be.not.empty;
-                    expect(globby.sync(dstPattern)).to.have.members(filesList);
-                    expect(this.myParser.resolve(dstPattern)).to.have.members(filesList);
-                    expect(this.myParser.resolve(dstPattern).length).to.eql(filesList.length);
-                    filesList.forEach(function (name) {
-                        expect(fs.existsSync(name)).to.be.true;
-                    });
-
-                    expect(arr.length).to.eql(filesList.length);
-                    expect(arr.every(e => e instanceof Error)).to.be.true;
-                    done();
+            try {
+                // filesList contains two files and renaming them to the same file name will fail.
+                await this.myMover.commitAsync(filesList, filesList);
+            }
+            catch(rejected) {
+                // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
+                expect(globby.sync(srcPattern)).to.be.not.empty;
+                expect(this.myParser.resolve(srcPattern)).to.be.not.empty;
+                expect(globby.sync(dstPattern)).to.have.members(filesList);
+                expect(this.myParser.resolve(dstPattern)).to.have.members(filesList);
+                expect(this.myParser.resolve(dstPattern).length).to.eql(filesList.length);
+                filesList.forEach(function (name) {
+                    expect(fs.existsSync(name)).to.be.true;
                 });
+
+                expect(rejected.length).to.eql(filesList.length);
+                expect(rejected.every(e => e instanceof Error)).to.be.true;
+                success = true;
+            }
+            finally {
+                !success ? expect.fail(null, null, 'should not resolve') : true;
+            }
         });
 
-        it('should, when source does not exist, return Promise rejected to array of Error in relevant slots', function (done) {
+        it('should, when source does not exist, return Promise rejected to array of Error in relevant slots', async function () {
+            let success = false;
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.doc');
             const filesList   = this.myParser.resolve(srcPattern);
@@ -421,33 +424,34 @@ describe('mv-mover', function () {
                 return name.replace(/\.txt$/, '.doc');
             });
 
-            // filesList contains some names of files that do not exist
-            this.myMover.commitAsync(filesList, newFilesList)
-                .then(() => {
-                    done(new Error('Expect promise to reject, not resolve'))
-                })
-                .catch(arr => {
-                    // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
-                    expect(globby.sync(srcPattern)).to.be.empty;
-                    expect(this.myParser.resolve(srcPattern)).to.be.empty;
-                    expect(newFilesList).to.include.members(globby.sync(dstPattern));
-                    expect(newFilesList).to.include.members(this.myParser.resolve(dstPattern));
-                    expect(this.myParser.resolve(dstPattern).length).to.eql(2);
-                    filesList.forEach(function (name) {
-                        expect(fs.existsSync(name)).to.be.false;
-                    });
-
-                    expect(arr.length).to.eql(filesList.length);
-                    // The move of first two files should be successful, therefore their slots contain null
-                    // The move of last two files should fail because source files are non-existent
-                    expect(arr[0]).to.be.null;
-                    expect(arr[1]).to.be.null;
-                    expect(arr[2]).to.be.instanceof(Error);
-                    expect(arr[3]).to.be.instanceof(Error);
-                    done();
+            try {
+                // the last two filenames in filesList do not exist
+                await this.myMover.commitAsync(filesList, newFilesList);
+            }
+            catch(rejected) {
+                // Cross-verification of the file move operation using globby, parser.resolve and fs.existsSync
+                expect(globby.sync(srcPattern)).to.be.empty;
+                expect(this.myParser.resolve(srcPattern)).to.be.empty;
+                expect(newFilesList).to.include.members(globby.sync(dstPattern));
+                expect(newFilesList).to.include.members(this.myParser.resolve(dstPattern));
+                expect(this.myParser.resolve(dstPattern).length).to.eql(2);
+                filesList.forEach(function (name) {
+                    expect(fs.existsSync(name)).to.be.false;
                 });
-        });
 
+                expect(rejected.length).to.eql(filesList.length);
+                // The move of first two files should be successful, therefore their slots should contain null
+                // The move of last two files should fail because source files are non-existent
+                expect(rejected[0]).to.be.null;
+                expect(rejected[1]).to.be.null;
+                expect(rejected[2]).to.be.instanceof(Error);
+                expect(rejected[3]).to.be.instanceof(Error);
+                success = true;
+            }
+            finally {
+                !success ? expect.fail(null, null, 'should not resolve') : true;
+            }
+        });
     });
 
     /* ----------------------------------------------------- */
