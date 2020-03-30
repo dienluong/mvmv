@@ -324,22 +324,22 @@ describe('mv-mover', function () {
             returned.then(() => done()).catch(() => done());
         });
 
-        it('should return a rejected Promise if invalid arguments passed', function (done) {
+        it('should return a Promise rejected to [] containing Error, if invalid arguments passed', function (done) {
             let filesList    = this.myParser.resolve(path.join(TEST_PATH, '*.up^'));
             let newFilesList = filesList.map(e => `${e}.up`);
             expect(filesList.length).to.eql(2);
 
             // For each Promise returned by commitAsync, if it rejects then we return a resolved Promise.
             let returnedPromises = [
-                this.myMover.commitAsync(filesList, 1234).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(filesList, '124').catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(filesList, true).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(filesList, {}).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(filesList).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(5467, newFilesList).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync('564', newFilesList).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync(true, newFilesList).catch(() => Promise.resolve('test passed')),
-                this.myMover.commitAsync({}, newFilesList).catch(() => Promise.resolve('test passed')),
+                this.myMover.commitAsync(filesList, 1234).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(filesList, '124').catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(filesList, true).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(filesList, {}).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(filesList).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(5467, newFilesList).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync('564', newFilesList).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync(true, newFilesList).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
+                this.myMover.commitAsync({}, newFilesList).catch(err => err[0] instanceof Error ? Promise.resolve('test passed') : Promise.resolve(' test failed')),
             ];
 
             Promise.all(returnedPromises)

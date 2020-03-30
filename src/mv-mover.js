@@ -45,7 +45,7 @@ function createMover() {
     /**
      * An async version of commit(). Moves a list of files based on list of new names. Returns a Promise.
      * Promise resolves to the number of successful file moves if all moves have been successful;
-     * Promise rejects to an array containing an Error on the position corresponding to the file that failed to be moved.
+     * For any error, the Promise rejects to an array containing an Error on the position corresponding to the file that failed to be moved.
      * @param filesList {String[]} List of files to move
      * @param newFilesList {String[]} List of new names
      * @param [options] {Object} For future use
@@ -54,7 +54,7 @@ function createMover() {
     function commitAsync(filesList, newFilesList, options) {
         let failedIndexes = [];
         if (!Array.isArray(filesList) || !Array.isArray(newFilesList)) {
-            return Promise.reject(new TypeError('Expects arrays of old and new names.'))
+            return Promise.reject([new TypeError('Expects arrays of old and new names.')])
         }
 
         return new Promise((resolve, reject) => {
