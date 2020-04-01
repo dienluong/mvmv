@@ -173,13 +173,19 @@ describe('mv-parser', function () {
 
             expect(result).to.be.eql(globby.sync(pattern));
 
+            const options = {
+                nobrace: true,
+                noglobstar: true,
+                noext: true,
+                nodir: true,
+            };
             // Test with / separator
             pattern = 'test/test-data//';
-            result = this.myParser.resolve(pattern);
+            result = this.myParser.resolve(pattern, options);
             // Expect empty result because nodir option is set to true
             expect(result.length).to.eql(0);
             pattern = 'test//test-data*///*.txt';
-            result = this.myParser.resolve(pattern);
+            result = this.myParser.resolve(pattern, options);
             expect(result.length).to.eql(3);
             expect(result).to.eql(globby.sync(pattern));
         });
