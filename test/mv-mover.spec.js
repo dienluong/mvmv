@@ -383,7 +383,7 @@ describe('mv-mover', function () {
             }
         });
 
-        it('should, when target already exist, return Promise rejected to array of Error in relevant slots', async function () {
+        it('should, when destination file already exist, return Promise rejected to array of Error object(s)', async function () {
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.txt');
             const filesList   = this.myParser.resolve(srcPattern);
@@ -413,7 +413,7 @@ describe('mv-mover', function () {
             }
         });
 
-        it('should, when source does not exist, return Promise rejected to array of Error in relevant slots', async function () {
+        it('should, when source file does not exist, return Promise rejected to array of Error object(s)', async function () {
             let success = false;
             const srcPattern  = path.join(TEST_PATH, '*.txt');
             const dstPattern  = path.join(TEST_PATH, '*.doc');
@@ -439,18 +439,16 @@ describe('mv-mover', function () {
                     expect(fs.existsSync(name)).to.be.false;
                 });
 
-                expect(rejected.length).to.eql(filesList.length);
+                // expects two Error objects
+                expect(rejected.length).to.eql(2);
                 // The move of first two files should be successful, therefore their slots should contain null
                 // The move of last two files should fail because source files are non-existent
-                expect(rejected[0]).to.be.null;
-                expect(rejected[1]).to.be.null;
-                expect(rejected[2]).to.be.instanceof(Error);
-                expect(rejected[3]).to.be.instanceof(Error);
+                expect(rejected[0]).to.be.instanceof(Error);
+                expect(rejected[1]).to.be.instanceof(Error);
                 success = true;
             }
-            finally {
-                !success ? expect.fail(null, null, 'should not resolve') : true;
-            }
+
+            !success ? expect.fail(null, null, 'commitAsync() should not resolve in this test') : true;
         });
     });
 
