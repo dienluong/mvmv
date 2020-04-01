@@ -107,7 +107,7 @@ function createController(parser, renamer, mover) {
     /**
      * Moves files on file system. This is the async version of exec().
      * The returned Promise resolves to the number of files moved.
-     * Any error during the operation results in returned Promise rejecting to an array containing Error or null (move success), each slot corresponding to a targetted file.
+     * Any error during the operation results in returned Promise rejecting to an array containing Error for each failed move attempt.
      * @method execAsync
      * @param src {String} Glob pattern specifying files to move
      * @param dst {String} Glob pattern characterizing the new names

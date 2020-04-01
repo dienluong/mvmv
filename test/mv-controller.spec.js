@@ -262,6 +262,18 @@ describe('Controller', function () {
             }
         });
 
+        it('should return Promise rejected to [] containing Error, if destination file already exists', async function () {
+            try {
+                await this.myController.execAsync('^twocarets.hi^^', '^^twocarets.hi^^');
+
+                expect.fail('should be unreachable');
+            }
+            catch (err) {
+                expect(Array.isArray(err)).to.be.true;
+                expect(err[0]).to.be.instanceof(Error);
+            }
+        });
+
         it('should return Promise resolved to number of files successfully moved', async function () {
             let srcGlob = path.join(TEST_PATH, '$*');
             let dstGlob = path.join(TEST_PATH, '^*.z..');
@@ -337,11 +349,10 @@ describe('Controller', function () {
             }
             catch (err) {
                 expect(Array.isArray(err)).to.be.true;
-                expect(err.length).to.eql(3);
                 // two of the three moves are expected to fail because files already exist.
+                expect(err.length).to.eql(2);
                 expect(err[0]).to.be.instanceof(Error);
                 expect(err[1]).to.be.instanceof(Error);
-                expect(err[2]).to.be.null;
 
                 // Two of the three targetted files should still be present
                 expect(globby.sync(srcGlob).length).to.eql(2);
