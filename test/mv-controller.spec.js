@@ -167,7 +167,7 @@ describe('Controller', function () {
                 srcGlob = 'test\\test-data\\\\dot*.?.*';
                 dstGlob = 'test\\\\test-data2\\bot*.?';
                 if (process.platform === 'win32') {
-                    expect(globby.sync(srcGlob).length).to.eql(4);
+                    expect(globby.sync(srcGlob).length).to.eql(5);
                 }
                 else {
                     expect(globby.sync(srcGlob).length).to.eql(0);
@@ -175,10 +175,10 @@ describe('Controller', function () {
                 expect(globby.sync('test/test-data2/*')).to.be.empty;
                 result = this.myController.exec(srcGlob, dstGlob, (err) => { if (err) {console.log(err.message);} });
                 if (process.platform === 'win32') {
-                    expect(result).to.eql(4);
+                    expect(result).to.eql(5);
                     expect(globby.sync(srcGlob)).to.be.empty;
-                    expect(globby.sync('test/test-data2/*').length).to.eql(4);
-                    expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+                    expect(globby.sync('test/test-data2/*').length).to.eql(5);
+                    expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a', "test/test-data2/botnames3.a" ]);
                     expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
                 }
                 else {
@@ -303,7 +303,7 @@ describe('Controller', function () {
             srcGlob = 'test\\test-data\\\\dot*.?.*';
             dstGlob = 'test\\\\test-data2\\bot*.?';
             if (process.platform === 'win32') {
-                expect(globby.sync(srcGlob).length).to.eql(4);
+                expect(globby.sync(srcGlob).length).to.eql(5);
             }
             else {
                 expect(globby.sync(srcGlob).length).to.eql(0);
@@ -313,10 +313,10 @@ describe('Controller', function () {
             try {
                 result = await this.myController.execAsync(srcGlob, dstGlob);
                 if (process.platform === 'win32') {
-                    expect(result).to.eql(4);
+                    expect(result).to.eql(5);
                     expect(globby.sync(srcGlob)).to.be.empty;
-                    expect(globby.sync('test/test-data2/*').length).to.eql(4);
-                    expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a' ]);
+                    expect(globby.sync('test/test-data2/*').length).to.eql(5);
+                    expect(globby.sync('test/test-data2/*.a')).to.have.members([ 'test/test-data2/botnames1.a', 'test/test-data2/botnames2.a', "test/test-data2/botnames3.a" ]);
                     expect(globby.sync('test/test-data2/*.z')).to.have.members([ 'test/test-data2/botdotnames1.z', 'test/test-data2/botdotnames2.z']);
                 }
                 else {
