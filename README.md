@@ -31,13 +31,35 @@ Install it as a dependency to use it in your code:
 `mvmv.exec(src, dst, cb)` accepts a callback and returns the number of successful files moved (returns NULL if file not found).
 
 The callback is invoked after a move/rename attempt on an **individual** file. The arguments passed to the callback are: `error`, `oldPath`, `newPath`, `index`. `index` is the zero-based position of the file in the batch of files to be processed. 
-
 ##### Example
 ```javascript
 const mvmv = require('mvmv').create();
 
 mvmv.exec('*.txt', 'temp/*.old');
 ```
+
+:baby: New in `v0.9.9`:
+
+`mvmv.execAsync(src, dst)` is the async counterpart of `mvmv.exec()`. `execAsync()` returns a Promise. The Promise resolves to the number of files successfully moved. In case of errors, the Promise rejects to an Array of Error.
+##### Example
+```javascript
+const mvmv = require('mvmv').create();
+
+mvmv.execAsync('*.txt', 'temp/*.old')
+    .then(res => console.log(`Moved ${res} files.`))
+    .catch(errors => errors.forEach(e => console.log(e)));
+
+// In an async function
+async function moveFiles(src, dst) {
+    try {
+        console.log(await mvmv.execAsync(src, dst));
+    }
+    catch (errors) {
+        errors.forEach(e => console.log(e));
+    }
+}
+```
+
 
 ## Command-line Usage
 With package installed globally:
